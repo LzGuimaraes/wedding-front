@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 
-// Interfaces para os dados
 interface Gift {
   id: number;
   name: string;
@@ -17,9 +16,10 @@ interface Guest {
   email?: string;
 }
 
-interface ReserveData {
-  giftId: number;
-  guestId: number;
+interface GuestApiResponse {
+  id: number;
+  full_name: string;
+  email?: string;
 }
 
 export default function ListaPresentes() {
@@ -30,24 +30,24 @@ export default function ListaPresentes() {
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [selectedGift, setSelectedGift] = useState<Gift | null>(null);
   const [showReserveModal, setShowReserveModal] = useState(false);
-  const [selectedGuestId, setSelectedGuestId] = useState<string>("");
+  const [selectedGuestId, setSelectedGuestId] = useState<number | "">("");
   const [reserveStatus, setReserveStatus] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "";
 
   const fetchGifts = async () => {
     setIsLoadingGifts(true);
     try {
       const response = await fetch(`${API_BASE_URL}/api/gifts`);
-      if (!response.ok) {
+      if (!response.ok)
         throw new Error(`HTTP error! status: ${response.status}`);
-      }
       const data: Gift[] = await response.json();
       setGifts(data);
-    } catch (error: any) {
-      console.error("Erro ao buscar presentes:", error);
-      setGifts([]);
+    } catch (error: unknown) {
+      const err = error as Error;
+      console.error("Erro:", err.message);
+      setErrorMessage(err.message);
     } finally {
       setIsLoadingGifts(false);
     }
@@ -57,36 +57,21 @@ export default function ListaPresentes() {
     setIsLoadingGuests(true);
     try {
       const response = await fetch(`${API_BASE_URL}/api/guests/confirmed`);
-      if (!response.ok) {
+      if (!response.ok)
         throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const data = await response.json();
-
-      // Log para debug
-      console.log("Dados recebidos da API guests:", data);
-
-      // Agora os dados já vêm com id, full_name e email do backend
-      const mappedGuests = data.map((guest: any) => ({
-        id: guest.id,
-        name: guest.full_name,
-        email: guest.email,
-      }));
-
-      // Filtrar apenas convidados com dados válidos
-      const validGuests = mappedGuests.filter(
-        (guest: Guest) =>
-          guest &&
-          guest.id &&
-          typeof guest.id === "number" &&
-          guest.name &&
-          guest.name.trim().length > 0
-      );
-
-      console.log("Convidados válidos mapeados:", validGuests);
+      const data: GuestApiResponse[] = await response.json();
+      const validGuests = data
+        .map((guest) => ({
+          id: guest.id,
+          name: guest.full_name,
+          email: guest.email,
+        }))
+        .filter((guest) => guest.id && guest.name.trim().length > 0);
 
       setGuests(validGuests);
-    } catch (error: any) {
-      console.error("Erro ao buscar convidados:", error);
+    } catch (error: unknown) {
+      const err = error as Error;
+      console.error("Erro ao buscar convidados:", err);
       setErrorMessage("Erro ao carregar convidados. Tente novamente.");
       setGuests([]);
     } finally {
@@ -94,6 +79,7 @@ export default function ListaPresentes() {
     }
   };
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     fetchGifts();
     fetchGuests();
@@ -106,23 +92,16 @@ export default function ListaPresentes() {
     );
   };
 
-  const getGiftsByStatus = (status: string) => {
-    return filterGiftsBySearch(gifts.filter((gift) => gift.status === status));
-  };
+  const getGiftsByStatus = (status: Gift["status"]) =>
+    filterGiftsBySearch(gifts.filter((gift) => gift.status === status));
 
   const availableGifts = getGiftsByStatus("available");
   const reservedGifts = getGiftsByStatus("reserved");
   const purchasedGifts = getGiftsByStatus("purchased");
 
   const handleReserveGift = async () => {
-    if (!selectedGift || !selectedGuestId.trim()) {
+    if (!selectedGift || selectedGuestId === "") {
       setErrorMessage("Por favor, selecione um convidado.");
-      return;
-    }
-
-    const guestIdNumber = parseInt(selectedGuestId);
-    if (isNaN(guestIdNumber) || guestIdNumber <= 0) {
-      setErrorMessage("ID do convidado inválido.");
       return;
     }
 
@@ -132,26 +111,16 @@ export default function ListaPresentes() {
     try {
       const response = await fetch(`${API_BASE_URL}/api/gifts/reserve`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           giftId: selectedGift.id,
-          guestId: guestIdNumber,
+          guestId: selectedGuestId,
         }),
       });
 
       if (!response.ok) {
-        let errorData;
-        try {
-          errorData = await response.json();
-        } catch {
-          const errorText = await response.text();
-          throw new Error(`Erro ${response.status}: ${errorText}`);
-        }
-        throw new Error(
-          errorData.error || `Erro HTTP! Status: ${response.status}`
-        );
+        const errorText = await response.text();
+        throw new Error(`Erro ${response.status}: ${errorText}`);
       }
 
       setReserveStatus("success");
@@ -160,9 +129,10 @@ export default function ListaPresentes() {
       setSelectedGuestId("");
       fetchGifts();
       alert("Presente reservado com sucesso!");
-    } catch (error: any) {
-      console.error("Erro ao reservar presente:", error);
-      setErrorMessage(`Falha na reserva: ${error.message}`);
+    } catch (error: unknown) {
+      const err = error as Error;
+      console.error("Erro ao reservar presente:", err);
+      setErrorMessage(`Falha na reserva: ${err.message}`);
       setReserveStatus("error");
     }
   };
@@ -173,16 +143,12 @@ export default function ListaPresentes() {
       return;
     }
 
-    if (!confirm(`Confirmar compra do presente "${gift.name}"?`)) {
-      return;
-    }
+    if (!confirm(`Confirmar compra do presente "${gift.name}"?`)) return;
 
     try {
       const response = await fetch(`${API_BASE_URL}/api/gifts/purchase`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           giftId: gift.id,
           guestId: gift.guest_id,
@@ -190,32 +156,24 @@ export default function ListaPresentes() {
       });
 
       if (!response.ok) {
-        let errorData;
-        try {
-          errorData = await response.json();
-        } catch {
-          const errorText = await response.text();
-          throw new Error(`Erro ${response.status}: ${errorText}`);
-        }
-        throw new Error(
-          errorData.error || `Erro HTTP! Status: ${response.status}`
-        );
+        const errorText = await response.text();
+        throw new Error(`Erro ${response.status}: ${errorText}`);
       }
 
       fetchGifts();
       alert("Compra confirmada com sucesso!");
-    } catch (error: any) {
-      console.error("Erro ao confirmar compra:", error);
-      alert(`Falha na confirmação: ${error.message}`);
+    } catch (error: unknown) {
+      const err = error as Error;
+      console.error("Erro ao confirmar compra:", err);
+      alert(`Falha na confirmação: ${err.message}`);
     }
   };
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat("pt-BR", {
+  const formatPrice = (price?: number) =>
+    new Intl.NumberFormat("pt-BR", {
       style: "currency",
       currency: "BRL",
-    }).format(price);
-  };
+    }).format(price ?? 0);
 
   const renderGiftList = (
     gifts: Gift[],
@@ -590,7 +548,7 @@ export default function ListaPresentes() {
               ) : (
                 <select
                   value={selectedGuestId}
-                  onChange={(e) => setSelectedGuestId(e.target.value)}
+                  onChange={(e) => setSelectedGuestId(Number(e.target.value))}
                   style={{
                     width: "100%",
                     padding: "10px",
