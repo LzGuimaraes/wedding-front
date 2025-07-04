@@ -1,161 +1,661 @@
-// your-wedding-frontend/src/app/presentes/page.tsx
+"use client";
 
-"use client"; // Marca como Client Component para interatividade
+import { useState, useEffect } from "react";
 
-import { useState, FormEvent } from 'react';
-import Image from 'next/image'; // Para exibir o QR Code
-
-// Interfaces para os dados da doação
-interface DonationFormData {
-  guestId: number | null;
-  donationType: string;
-  amount: number;
-  donorName: string;
-  donorMessage: string;
+// Interfaces para os dados
+interface Gift {
+  id: number;
+  name: string;
+  price: number;
+  status: "available" | "reserved" | "purchased";
+  guest_id?: number;
 }
 
-export default function PresentesPage() {
-  const [formData, setFormData] = useState<DonationFormData>({
-    guestId: null,
-    donationType: 'Presente', // Default para 'Presente'
-    amount: 0,
-    donorName: '',
-    donorMessage: '',
-  });
-  const [submissionStatus, setSubmissionStatus] = useState<string | null>(null); // 'success', 'error', 'loading'
+interface Guest {
+  id: number;
+  name: string;
+  email?: string;
+}
+
+interface ReserveData {
+  giftId: number;
+  guestId: number;
+}
+
+export default function ListaPresentes() {
+  const [gifts, setGifts] = useState<Gift[]>([]);
+  const [guests, setGuests] = useState<Guest[]>([]);
+  const [isLoadingGifts, setIsLoadingGifts] = useState(true);
+  const [isLoadingGuests, setIsLoadingGuests] = useState(false);
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  const [selectedGift, setSelectedGift] = useState<Gift | null>(null);
+  const [showReserveModal, setShowReserveModal] = useState(false);
+  const [selectedGuestId, setSelectedGuestId] = useState<string>("");
+  const [reserveStatus, setReserveStatus] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3002/api'; 
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
-  // CHAVE PIX E QR CODE (Exemplo: Substitua pelos seus dados reais!)
-  // Você pode gerar um QR Code Pix estático (copia e cola em public/) ou usar uma API para gerar dinamicamente.
-  const PIX_KEY = 'seu.email@exemplo.com'; // Exemplo de chave Pix (e-mail, CPF, CNPJ, telefone)
-  const PIX_QR_CODE_URL = '/qrcode-pix.png'; // Exemplo: Imagem QR Code salva em public/
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value, type } = e.target;
-    setFormData((prevData) => ({
-      ...prevData,
-      [name]: type === 'number' ? Number(value) : value,
-    }));
+  const fetchGifts = async () => {
+    setIsLoadingGifts(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/gifts`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data: Gift[] = await response.json();
+      setGifts(data);
+    } catch (error: any) {
+      console.error("Erro ao buscar presentes:", error);
+      setGifts([]);
+    } finally {
+      setIsLoadingGifts(false);
+    }
   };
 
-  const handleDonationSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-    setSubmissionStatus('loading');
+  const fetchGuests = async () => {
+    setIsLoadingGuests(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/guests/confirmed`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+
+      // Log para debug
+      console.log("Dados recebidos da API guests:", data);
+
+      // Agora os dados já vêm com id, full_name e email do backend
+      const mappedGuests = data.map((guest: any) => ({
+        id: guest.id,
+        name: guest.full_name,
+        email: guest.email,
+      }));
+
+      // Filtrar apenas convidados com dados válidos
+      const validGuests = mappedGuests.filter(
+        (guest: Guest) =>
+          guest &&
+          guest.id &&
+          typeof guest.id === "number" &&
+          guest.name &&
+          guest.name.trim().length > 0
+      );
+
+      console.log("Convidados válidos mapeados:", validGuests);
+
+      setGuests(validGuests);
+    } catch (error: any) {
+      console.error("Erro ao buscar convidados:", error);
+      setErrorMessage("Erro ao carregar convidados. Tente novamente.");
+      setGuests([]);
+    } finally {
+      setIsLoadingGuests(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchGifts();
+    fetchGuests();
+  }, []);
+
+  const filterGiftsBySearch = (gifts: Gift[]) => {
+    if (!searchTerm.trim()) return gifts;
+    return gifts.filter((gift) =>
+      gift.name.toLowerCase().includes(searchTerm.toLowerCase().trim())
+    );
+  };
+
+  const getGiftsByStatus = (status: string) => {
+    return filterGiftsBySearch(gifts.filter((gift) => gift.status === status));
+  };
+
+  const availableGifts = getGiftsByStatus("available");
+  const reservedGifts = getGiftsByStatus("reserved");
+  const purchasedGifts = getGiftsByStatus("purchased");
+
+  const handleReserveGift = async () => {
+    if (!selectedGift || !selectedGuestId.trim()) {
+      setErrorMessage("Por favor, selecione um convidado.");
+      return;
+    }
+
+    const guestIdNumber = parseInt(selectedGuestId);
+    if (isNaN(guestIdNumber) || guestIdNumber <= 0) {
+      setErrorMessage("ID do convidado inválido.");
+      return;
+    }
+
+    setReserveStatus("loading");
     setErrorMessage(null);
 
-    // Validação frontend (além da validação do backend)
-    if (!formData.donorName.trim()) {
-      setErrorMessage("Por favor, preença seu nome como doador.");
-      setSubmissionStatus('error');
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/gifts/reserve`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          giftId: selectedGift.id,
+          guestId: guestIdNumber,
+        }),
+      });
+
+      if (!response.ok) {
+        let errorData;
+        try {
+          errorData = await response.json();
+        } catch {
+          const errorText = await response.text();
+          throw new Error(`Erro ${response.status}: ${errorText}`);
+        }
+        throw new Error(
+          errorData.error || `Erro HTTP! Status: ${response.status}`
+        );
+      }
+
+      setReserveStatus("success");
+      setShowReserveModal(false);
+      setSelectedGift(null);
+      setSelectedGuestId("");
+      fetchGifts();
+      alert("Presente reservado com sucesso!");
+    } catch (error: any) {
+      console.error("Erro ao reservar presente:", error);
+      setErrorMessage(`Falha na reserva: ${error.message}`);
+      setReserveStatus("error");
+    }
+  };
+
+  const handleConfirmPurchase = async (gift: Gift) => {
+    if (!gift.guest_id || gift.guest_id <= 0) {
+      alert("Erro: Presente não possui convidado válido associado.");
       return;
     }
-    if (formData.amount <= 0) {
-      setErrorMessage("O valor da doação deve ser maior que zero.");
-      setSubmissionStatus('error');
-      return;
-    }
-    if (formData.donationType === 'Lua de Mel' && formData.amount < 100) {
-      setErrorMessage("Para a Lua de Mel, o valor mínimo é de R$100.");
-      setSubmissionStatus('error');
+
+    if (!confirm(`Confirmar compra do presente "${gift.name}"?`)) {
       return;
     }
 
     try {
-      const response = await fetch(`${API_BASE_URL}/donations/record`, {
-        method: 'POST',
+      const response = await fetch(`${API_BASE_URL}/api/gifts/purchase`, {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          giftId: gift.id,
+          guestId: gift.guest_id,
+        }),
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || `Erro HTTP! Status: ${response.status}`);
+        let errorData;
+        try {
+          errorData = await response.json();
+        } catch {
+          const errorText = await response.text();
+          throw new Error(`Erro ${response.status}: ${errorText}`);
+        }
+        throw new Error(
+          errorData.error || `Erro HTTP! Status: ${response.status}`
+        );
       }
 
-      setSubmissionStatus('success');
-      setFormData({ guestId: null, donationType: 'Presente', amount: 0, donorName: '', donorMessage: '' });
-      alert("Sua doação foi registrada com sucesso!");
+      fetchGifts();
+      alert("Compra confirmada com sucesso!");
     } catch (error: any) {
-      console.error("Erro ao registrar doação:", error);
-      setErrorMessage(`Falha ao registrar doação: ${error.message}`);
-      setSubmissionStatus('error');
+      console.error("Erro ao confirmar compra:", error);
+      alert(`Falha na confirmação: ${error.message}`);
     }
   };
 
+  const formatPrice = (price: number) => {
+    return new Intl.NumberFormat("pt-BR", {
+      style: "currency",
+      currency: "BRL",
+    }).format(price);
+  };
+
+  const renderGiftList = (
+    gifts: Gift[],
+    title: string,
+    icon: string,
+    emptyMessage: string,
+    bgColor: string,
+    hoverColor: string
+  ) => (
+    <div>
+      <h3
+        style={{
+          color: "var(--color-deep-rose)",
+          marginBottom: "10px",
+          fontSize: "1.2em",
+        }}
+      >
+        {icon} {title} ({gifts.length})
+      </h3>
+      <div
+        style={{
+          maxHeight: "250px",
+          overflowY: "auto",
+          border: "1px solid var(--color-light-gray)",
+          borderRadius: "8px",
+          backgroundColor: "#f9f9f9",
+          padding: "10px",
+        }}
+      >
+        {gifts.length === 0 ? (
+          <p
+            style={{
+              textAlign: "center",
+              color: "var(--color-light-gray)",
+              margin: "20px 0",
+            }}
+          >
+            {searchTerm
+              ? `Nenhum presente encontrado em "${title}".`
+              : emptyMessage}
+          </p>
+        ) : (
+          <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+            {gifts.map((gift, index) => (
+              <li
+                key={gift.id}
+                style={{
+                  padding: "15px",
+                  borderBottom:
+                    index < gifts.length - 1
+                      ? "1px dashed var(--color-light-gray)"
+                      : "none",
+                  backgroundColor: "white",
+                  margin: "2px 0",
+                  borderRadius: "4px",
+                  transition: "background-color 0.2s ease",
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = hoverColor;
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = "white";
+                }}
+              >
+                <div style={{ flex: 1 }}>
+                  <div
+                    style={{
+                      fontSize: "1.1em",
+                      fontWeight: "bold",
+                      color: "var(--color-dark-gray)",
+                    }}
+                  >
+                    {gift.name}
+                  </div>
+                  <div
+                    style={{
+                      fontSize: "1em",
+                      color: "var(--color-deep-rose)",
+                      fontWeight: "bold",
+                      marginTop: "5px",
+                    }}
+                  >
+                    {formatPrice(gift.price)}
+                  </div>
+                </div>
+                <div
+                  style={{ display: "flex", gap: "10px", alignItems: "center" }}
+                >
+                  {gift.status === "available" && (
+                    <button
+                      onClick={() => {
+                        setSelectedGift(gift);
+                        setShowReserveModal(true);
+                        setErrorMessage(null);
+                        setReserveStatus(null);
+                        fetchGuests(); // Buscar convidados ao abrir o modal
+                      }}
+                      style={{
+                        padding: "8px 16px",
+                        backgroundColor: "var(--color-pink-soft)",
+                        color: "white",
+                        border: "none",
+                        borderRadius: "20px",
+                        cursor: "pointer",
+                        fontSize: "0.9em",
+                        fontWeight: "bold",
+                        transition: "all 0.3s ease",
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor =
+                          "var(--color-deep-rose)";
+                        e.currentTarget.style.transform = "scale(1.05)";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor =
+                          "var(--color-pink-soft)";
+                        e.currentTarget.style.transform = "scale(1)";
+                      }}
+                    >
+                      Reservar
+                    </button>
+                  )}
+                  {gift.status === "reserved" && (
+                    <button
+                      onClick={() => handleConfirmPurchase(gift)}
+                      style={{
+                        padding: "8px 16px",
+                        backgroundColor: "#28a745",
+                        color: "white",
+                        border: "none",
+                        borderRadius: "20px",
+                        cursor: "pointer",
+                        fontSize: "0.9em",
+                        fontWeight: "bold",
+                        transition: "all 0.3s ease",
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = "#218838";
+                        e.currentTarget.style.transform = "scale(1.05)";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = "#28a745";
+                        e.currentTarget.style.transform = "scale(1)";
+                      }}
+                    >
+                      Confirmar Compra
+                    </button>
+                  )}
+                  {gift.status === "purchased" && (
+                    <span
+                      style={{
+                        padding: "8px 16px",
+                        backgroundColor: "#6c757d",
+                        color: "white",
+                        borderRadius: "20px",
+                        fontSize: "0.9em",
+                        fontWeight: "bold",
+                      }}
+                    >
+                      Comprado
+                    </span>
+                  )}
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    </div>
+  );
+
   return (
-    <div style={{ maxWidth: '800px', margin: '50px auto', padding: '30px', backgroundColor: 'var(--color-white)', borderRadius: '10px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', fontFamily: 'inherit', color: 'var(--color-dark-gray)' }}>
-      <h1 style={{ color: 'var(--color-deep-rose)', fontSize: '2.5em', marginBottom: '30px', textAlign: 'center' }}>Nossa Lista de Presentes</h1>
-      <p style={{ textAlign: 'center', fontSize: '1.1em', marginBottom: '40px' }}>Sua presença é o maior presente! Mas se quiserem nos presentear, nos ajudem a realizar nossos sonhos:</p>
+    <div
+      style={{
+        maxWidth: "800px",
+        margin: "50px auto",
+        padding: "20px",
+        backgroundColor: "var(--color-white)",
+        borderRadius: "8px",
+        boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+        fontFamily: "inherit",
+        color: "var(--color-dark-gray)",
+      }}
+    >
+      <h1
+        style={{
+          color: "var(--color-deep-rose)",
+          fontSize: "2em",
+          marginBottom: "20px",
+          textAlign: "center",
+        }}
+      >
+        Lista de Presentes
+      </h1>
+      <p style={{ textAlign: "center", marginBottom: "30px" }}>
+        Escolha um presente para reservar ou confirme a compra dos presentes já
+        reservados.
+      </p>
 
-      {/* Seção de Doação Via Pix Geral */}
-      <section style={{ marginBottom: '50px', border: '1px solid var(--color-light-gray)', borderRadius: '8px', padding: '30px' }}>
-        <h2 style={{ color: 'var(--color-pink-soft)', fontSize: '1.8em', marginBottom: '20px', textAlign: 'center' }}>Presenteie Via Pix!</h2>
-        <p style={{ textAlign: 'center', marginBottom: '20px' }}>Qualquer valor será muito bem-vindo para nos ajudar a construir nosso lar.</p>
-        
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '20px' }}>
-          <p style={{ fontSize: '1.2em', fontWeight: 'bold' }}>Chave Pix: <span style={{ color: 'var(--color-deep-rose)' }}>{PIX_KEY}</span></p>
-          <div style={{ border: '2px solid var(--color-gold-soft)', padding: '10px', borderRadius: '5px', backgroundColor: 'var(--color-white)' }}>
-            <Image src={PIX_QR_CODE_URL} alt="QR Code Pix" width={150} height={150} style={{ display: 'block' }} />
+      {/* Barra de Pesquisa */}
+      <div style={{ marginBottom: "30px" }}>
+        <input
+          type="text"
+          placeholder="🔍 Pesquisar presentes..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          style={{
+            width: "100%",
+            padding: "12px 15px",
+            borderRadius: "25px",
+            border: "1px solid var(--color-light-gray)",
+            fontSize: "1em",
+            outline: "none",
+            transition: "border-color 0.3s ease",
+            boxShadow: "0 2px 4px rgba(0,0,0,0.05)",
+          }}
+          onFocus={(e) => {
+            e.target.style.borderColor = "var(--color-pink-soft)";
+            e.target.style.boxShadow = "0 0 0 3px rgba(255, 192, 203, 0.2)";
+          }}
+          onBlur={(e) => {
+            e.target.style.borderColor = "var(--color-light-gray)";
+            e.target.style.boxShadow = "0 2px 4px rgba(0,0,0,0.05)";
+          }}
+        />
+      </div>
+
+      {/* Debug Info - Remover em produção */}
+      {process.env.NODE_ENV === "development" && (
+        <div
+          style={{
+            marginBottom: "20px",
+            padding: "10px",
+            backgroundColor: "#f0f0f0",
+            borderRadius: "5px",
+            fontSize: "0.9em",
+          }}
+        >
+          <strong>Debug Info:</strong> Total de convidados carregados:{" "}
+          {guests.length}
+          {guests.length > 0 && (
+            <div>Primeiro convidado: {JSON.stringify(guests[0])}</div>
+          )}
+        </div>
+      )}
+
+      {isLoadingGifts ? (
+        <p style={{ textAlign: "center" }}>Carregando presentes...</p>
+      ) : (
+        <div style={{ display: "flex", flexDirection: "column", gap: "25px" }}>
+          {renderGiftList(
+            availableGifts,
+            "Disponíveis",
+            "🎁",
+            "Nenhum presente disponível no momento.",
+            "#f0f8ff",
+            "#e6f3ff"
+          )}
+
+          {renderGiftList(
+            reservedGifts,
+            "Reservados",
+            "⏳",
+            "Nenhum presente reservado.",
+            "#fff8f0",
+            "#ffebcc"
+          )}
+
+          {renderGiftList(
+            purchasedGifts,
+            "Comprados",
+            "✅",
+            "Nenhum presente comprado ainda.",
+            "#f0fff0",
+            "#e6ffe6"
+          )}
+        </div>
+      )}
+
+      {/* Modal de Reserva */}
+      {showReserveModal && selectedGift && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100%",
+            height: "100%",
+            backgroundColor: "rgba(0,0,0,0.5)",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            zIndex: 1000,
+          }}
+        >
+          <div
+            style={{
+              backgroundColor: "white",
+              padding: "30px",
+              borderRadius: "12px",
+              maxWidth: "400px",
+              width: "90%",
+              boxShadow: "0 4px 20px rgba(0,0,0,0.3)",
+            }}
+          >
+            <h3
+              style={{
+                color: "var(--color-deep-rose)",
+                marginBottom: "15px",
+                textAlign: "center",
+              }}
+            >
+              Reservar Presente
+            </h3>
+            <div style={{ marginBottom: "20px", textAlign: "center" }}>
+              <strong>{selectedGift.name}</strong>
+              <br />
+              <span
+                style={{ color: "var(--color-deep-rose)", fontWeight: "bold" }}
+              >
+                {formatPrice(selectedGift.price)}
+              </span>
+            </div>
+
+            {reserveStatus === "loading" && (
+              <p style={{ color: "blue", textAlign: "center" }}>
+                Processando reserva...
+              </p>
+            )}
+            {errorMessage && (
+              <p style={{ color: "red", textAlign: "center" }}>
+                {errorMessage}
+              </p>
+            )}
+
+            <div style={{ marginBottom: "20px" }}>
+              <label style={{ display: "block", marginBottom: "5px" }}>
+                Selecione o Convidado: <span style={{ color: "red" }}>*</span>
+              </label>
+              {isLoadingGuests ? (
+                <p
+                  style={{
+                    color: "var(--color-deep-rose)",
+                    textAlign: "center",
+                  }}
+                >
+                  Carregando convidados...
+                </p>
+              ) : guests.length === 0 ? (
+                <div style={{ textAlign: "center" }}>
+                  <p style={{ color: "red", marginBottom: "10px" }}>
+                    Nenhum convidado confirmado encontrado.
+                  </p>
+                  <button
+                    onClick={fetchGuests}
+                    style={{
+                      padding: "5px 10px",
+                      backgroundColor: "var(--color-pink-soft)",
+                      color: "white",
+                      border: "none",
+                      borderRadius: "5px",
+                      cursor: "pointer",
+                      fontSize: "0.9em",
+                    }}
+                  >
+                    Tentar Novamente
+                  </button>
+                </div>
+              ) : (
+                <select
+                  value={selectedGuestId}
+                  onChange={(e) => setSelectedGuestId(e.target.value)}
+                  style={{
+                    width: "100%",
+                    padding: "10px",
+                    borderRadius: "5px",
+                    border: "1px solid var(--color-light-gray)",
+                    fontSize: "1em",
+                    backgroundColor: "white",
+                  }}
+                >
+                  <option value="">Selecione um convidado</option>
+                  {guests.map((guest) => (
+                    <option key={`guest-${guest.id}`} value={guest.id}>
+                      {guest.name} {guest.email ? `(${guest.email})` : ""}
+                    </option>
+                  ))}
+                </select>
+              )}
+            </div>
+
+            <div
+              style={{ display: "flex", gap: "10px", justifyContent: "center" }}
+            >
+              <button
+                onClick={() => {
+                  setShowReserveModal(false);
+                  setSelectedGift(null);
+                  setSelectedGuestId("");
+                  setErrorMessage(null);
+                  setReserveStatus(null);
+                }}
+                style={{
+                  padding: "10px 20px",
+                  backgroundColor: "#6c757d",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "5px",
+                  cursor: "pointer",
+                }}
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleReserveGift}
+                disabled={reserveStatus === "loading" || guests.length === 0}
+                style={{
+                  padding: "10px 20px",
+                  backgroundColor:
+                    guests.length === 0 ? "#ccc" : "var(--color-pink-soft)",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "5px",
+                  cursor:
+                    reserveStatus === "loading" || guests.length === 0
+                      ? "not-allowed"
+                      : "pointer",
+                }}
+              >
+                {reserveStatus === "loading"
+                  ? "Reservando..."
+                  : "Confirmar Reserva"}
+              </button>
+            </div>
           </div>
-          <p style={{ fontSize: '0.9em', color: 'var(--color-dark-gray)' }}>Escaneie o QR Code acima ou copie a chave Pix.</p>
         </div>
-
-        {/* Formulário para registrar a doação */}
-        <div style={{ marginTop: '40px' }}>
-          <h3 style={{ color: 'var(--color-pink-soft)', fontSize: '1.5em', marginBottom: '20px', textAlign: 'center' }}>Registrar Sua Doação (Opcional)</h3>
-          {submissionStatus === 'loading' && <p style={{ color: 'blue', textAlign: 'center' }}>Registrando doação...</p>}
-          {errorMessage && <p style={{ color: 'red', textAlign: 'center' }}>{errorMessage}</p>}
-          {submissionStatus === 'success' && !errorMessage && <p style={{ color: 'green', textAlign: 'center' }}>Doação registrada com sucesso!</p>}
-
-          <form onSubmit={handleDonationSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-            <div>
-              <label htmlFor="donorName" style={{ display: 'block', marginBottom: '5px' }}>Seu Nome:</label>
-              <input type="text" id="donorName" name="donorName" value={formData.donorName} onChange={handleChange} required style={{ width: '100%', padding: '10px', borderRadius: '5px', border: '1px solid var(--color-light-gray)' }} />
-            </div>
-            <div>
-              <label htmlFor="amount" style={{ display: 'block', marginBottom: '5px' }}>Valor da Doação (R$):</label>
-              <input type="number" id="amount" name="amount" value={formData.amount} onChange={handleChange} min="0.01" step="0.01" required style={{ width: '100%', padding: '10px', borderRadius: '5px', border: '1px solid var(--color-light-gray)' }} />
-            </div>
-            <div>
-              <label htmlFor="donationType" style={{ display: 'block', marginBottom: '5px' }}>Destino da Doação:</label>
-              <select id="donationType" name="donationType" value={formData.donationType} onChange={handleChange} style={{ width: '100%', padding: '10px', borderRadius: '5px', border: '1px solid var(--color-light-gray)' }}>
-                <option value="Presente">Presente para o Lar</option>
-                <option value="Lua de Mel">Caixinha da Lua de Mel</option>
-              </select>
-            </div>
-            <div>
-              <label htmlFor="donorMessage" style={{ display: 'block', marginBottom: '5px' }}>Mensagem (opcional):</label>
-              <textarea id="donorMessage" name="donorMessage" value={formData.donorMessage} onChange={handleChange} rows={3} style={{ width: '100%', padding: '10px', borderRadius: '5px', border: '1px solid var(--color-light-gray)', resize: 'vertical' }} />
-            </div>
-            <button type="submit" disabled={submissionStatus === 'loading'} style={{ padding: '12px 20px', backgroundColor: 'var(--color-gold-soft)', color: 'var(--color-white)', border: 'none', borderRadius: '5px', cursor: 'pointer', fontSize: '1.1em', fontWeight: 'bold' }}>
-              {submissionStatus === 'loading' ? 'Registrando...' : 'Registrar Doação'}
-            </button>
-          </form>
-        </div>
-      </section>
-
-      {/* Seção de Caixinha de Doação para Lua de Mel (se for separada da geral) */}
-      <section style={{ border: '1px solid var(--color-gold-soft)', borderRadius: '8px', padding: '30px', backgroundColor: 'var(--color-white)', marginTop: '30px' }}>
-        <h2 style={{ color: 'var(--color-pink-soft)', fontSize: '1.8em', marginBottom: '20px', textAlign: 'center' }}>Caixinha de Doação para Lua de Mel</h2>
-        <p style={{ textAlign: 'center', fontSize: '1.1em', marginBottom: '20px' }}>Ajude-nos a ter uma lua de mel inesquecível!</p>
-        <p style={{ textAlign: 'center', fontSize: '1.2em', fontWeight: 'bold', color: 'var(--color-deep-rose)' }}>Valor Mínimo: R$ 100,00</p>
-        <p style={{ textAlign: 'center', fontSize: '0.9em', color: 'var(--color-dark-gray)', marginTop: '10px' }}>Use a mesma chave Pix acima e selecione "Caixinha da Lua de Mel" no formulário.</p>
-        {/* O formulário de doação acima já serve para a lua de mel com a opção no select */}
-      </section>
-
-      {/* Seção para lista de presentes específicos (se for usar a API de /gifts) */}
-      
-      <section style={{ marginTop: '50px' }}>
-        <h2 style={{ color: 'var(--color-pink-soft)', fontSize: '1.8em', marginBottom: '20px', textAlign: 'center' }}>Nossos Pedidos Específicos</h2>
-        <p style={{ textAlign: 'center', marginBottom: '20px' }}>Aqui você pode reservar um item específico da nossa lista de desejos!</p>
-        
-        
-      </section>
-      
+      )}
     </div>
   );
 }
