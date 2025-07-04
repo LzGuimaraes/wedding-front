@@ -1,8 +1,7 @@
 "use client";
 
-import { useState, FormEvent, useEffect } from "react";
+import { useState, FormEvent, useEffect, useCallback } from "react";
 
-// Interfaces para os dados
 interface FormData {
   fullName: string;
   email: string;
@@ -29,10 +28,9 @@ export default function ConfirmarPresencaPage() {
 
   const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
-  const fetchAllGuests = async () => {
+  const fetchAllGuests = useCallback(async () => {
     setIsLoadingGuests(true);
     try {
-      // Buscar convidados confirmados
       const confirmedResponse = await fetch(
         `${API_BASE_URL}/api/guests/confirmed`
       );
@@ -41,7 +39,6 @@ export default function ConfirmarPresencaPage() {
         setConfirmedGuests(confirmedData);
       }
 
-      // Buscar convidados não confirmados (você precisará criar esta rota no backend)
       const unconfirmedResponse = await fetch(
         `${API_BASE_URL}/api/guests/unconfirmed`
       );
@@ -49,18 +46,18 @@ export default function ConfirmarPresencaPage() {
         const unconfirmedData: Guest[] = await unconfirmedResponse.json();
         setUnconfirmedGuests(unconfirmedData);
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Erro ao buscar convidados:", error);
       setConfirmedGuests([]);
       setUnconfirmedGuests([]);
     } finally {
       setIsLoadingGuests(false);
     }
-  };
+  }, [API_BASE_URL]);
 
   useEffect(() => {
     fetchAllGuests();
-  }, []);
+  }, [fetchAllGuests]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -92,7 +89,6 @@ export default function ConfirmarPresencaPage() {
     setSubmissionStatus("loading");
     setErrorMessage(null);
 
-    // Validações
     if (!formData.fullName.trim()) {
       setErrorMessage("Por favor, preencha o nome completo.");
       setSubmissionStatus("error");
@@ -119,7 +115,7 @@ export default function ConfirmarPresencaPage() {
         },
         body: JSON.stringify({
           ...formData,
-          numCompanions: 0, // Valor padrão já que removemos o campo
+          numCompanions: 0,
         }),
       });
 
@@ -140,9 +136,13 @@ export default function ConfirmarPresencaPage() {
       setFormData({ fullName: "", email: "", message: "" });
       fetchAllGuests();
       alert("Sua presença foi confirmada com sucesso!");
-    } catch (error: any) {
-      console.error("Erro ao confirmar presença:", error);
-      setErrorMessage(`Falha na confirmação: ${error.message}`);
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        console.error("Erro ao confirmar presença:", error);
+        setErrorMessage(`Falha na confirmação: ${error.message}`);
+      } else {
+        setErrorMessage("Falha na confirmação: erro desconhecido.");
+      }
       setSubmissionStatus("error");
     }
   };
