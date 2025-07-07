@@ -36,6 +36,7 @@ export default function ListaPresentes() {
 
   const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "";
 
+  // Busca os presentes da API
   const fetchGifts = async () => {
     setIsLoadingGifts(true);
     try {
@@ -44,15 +45,16 @@ export default function ListaPresentes() {
         throw new Error(`HTTP error! status: ${response.status}`);
       const data: Gift[] = await response.json();
       setGifts(data);
-    } catch (error: unknown) {
-      const err = error as Error;
-      console.error("Erro:", err.message);
-      setErrorMessage(err.message);
+      setErrorMessage(null);
+    } catch (error) {
+      setErrorMessage("Erro ao carregar presentes.");
+      console.error(error);
     } finally {
       setIsLoadingGifts(false);
     }
   };
 
+  // Busca os convidados confirmados da API
   const fetchGuests = async () => {
     setIsLoadingGuests(true);
     try {
@@ -67,12 +69,11 @@ export default function ListaPresentes() {
           email: guest.email,
         }))
         .filter((guest) => guest.id && guest.name.trim().length > 0);
-
       setGuests(validGuests);
-    } catch (error: unknown) {
-      const err = error as Error;
-      console.error("Erro ao buscar convidados:", err);
-      setErrorMessage("Erro ao carregar convidados. Tente novamente.");
+      setErrorMessage(null);
+    } catch (error) {
+      setErrorMessage("Erro ao carregar convidados.");
+      console.error(error);
       setGuests([]);
     } finally {
       setIsLoadingGuests(false);
@@ -98,15 +99,20 @@ export default function ListaPresentes() {
   const reservedGifts = getGiftsByStatus("reserved");
   const purchasedGifts = getGiftsByStatus("purchased");
 
+  const formatPrice = (price?: number) =>
+    new Intl.NumberFormat("pt-BR", {
+      style: "currency",
+      currency: "BRL",
+    }).format(price ?? 0);
+
+  // Ação de reservar presente
   const handleReserveGift = async () => {
     if (!selectedGift || selectedGuestId === "") {
       setErrorMessage("Por favor, selecione um convidado.");
       return;
     }
-
     setReserveStatus("loading");
     setErrorMessage(null);
-
     try {
       const response = await fetch(`${API_BASE_URL}/api/gifts/reserve`, {
         method: "POST",
@@ -116,12 +122,10 @@ export default function ListaPresentes() {
           guestId: selectedGuestId,
         }),
       });
-
       if (!response.ok) {
         const errorText = await response.text();
         throw new Error(`Erro ${response.status}: ${errorText}`);
       }
-
       setReserveStatus("success");
       setShowReserveModal(false);
       setSelectedGift(null);
@@ -130,18 +134,18 @@ export default function ListaPresentes() {
       alert("Presente reservado com sucesso!");
     } catch (error: unknown) {
       const err = error as Error;
-      console.error("Erro ao reservar presente:", err);
       setErrorMessage(`Falha na reserva: ${err.message}`);
       setReserveStatus("error");
+      console.error(err);
     }
   };
 
+  // Ação de confirmar compra
   const handleConfirmPurchase = async (gift: Gift) => {
     if (!gift.guest_id || gift.guest_id <= 0) {
       alert("Erro: Presente não possui convidado válido associado.");
       return;
     }
-
     if (!confirm(`Confirmar compra do presente "${gift.name}"?`)) return;
 
     try {
@@ -153,268 +157,275 @@ export default function ListaPresentes() {
           guestId: gift.guest_id,
         }),
       });
-
       if (!response.ok) {
         const errorText = await response.text();
         throw new Error(`Erro ${response.status}: ${errorText}`);
       }
-
       fetchGifts();
       alert("Compra confirmada com sucesso!");
     } catch (error: unknown) {
       const err = error as Error;
-      console.error("Erro ao confirmar compra:", err);
       alert(`Falha na confirmação: ${err.message}`);
+      console.error(err);
     }
   };
 
-  const formatPrice = (price?: number) =>
-    new Intl.NumberFormat("pt-BR", {
-      style: "currency",
-      currency: "BRL",
-    }).format(price ?? 0);
+  const renderGiftList = (
+    gifts: Gift[],
+    title: string,
+    icon: string,
+    emptyMessage: string,
+    bgColor: string,
+    hoverColor: string
+  ) => (
+    <div>
+      <h3
+        style={{
+          color: "var(--color-deep-rose)",
+          marginBottom: "10px",
+          fontSize: "1.2em",
+        }}
+      >
+        {icon} {title} ({gifts.length})
+      </h3>
+      <div
+        style={{
+          maxHeight: "250px",
+          overflowY: "auto",
+          border: "1px solid var(--color-light-gray)",
+          borderRadius: "8px",
+          backgroundColor: bgColor,
+          padding: "10px",
+        }}
+      >
+        {gifts.length === 0 ? (
+          <p
+            style={{
+              textAlign: "center",
+              color: "var(--color-light-gray)",
+              margin: "20px 0",
+            }}
+          >
+            {searchTerm
+              ? `Nenhum presente encontrado em "${title}".`
+              : emptyMessage}
+          </p>
+        ) : (
+          <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+            {gifts.map((gift, index) => (
+              <li
+                key={gift.id}
+                style={{
+                  padding: "15px",
+                  borderBottom:
+                    index < gifts.length - 1
+                      ? "1px dashed var(--color-light-gray)"
+                      : "none",
+                  backgroundColor: "white",
+                  margin: "2px 0",
+                  borderRadius: "4px",
+                  transition: "background-color 0.2s ease",
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = hoverColor;
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = "white";
+                }}
+              >
+                <div style={{ flex: 1 }}>
+                  <div
+                    style={{
+                      fontSize: "1.1em",
+                      fontWeight: "bold",
+                      color: "var(--color-dark-gray)",
+                    }}
+                  >
+                    {gift.name}
+                  </div>
+                  <div
+                    style={{
+                      fontSize: "1em",
+                      color: "var(--color-deep-rose)",
+                      fontWeight: "bold",
+                      marginTop: "5px",
+                    }}
+                  >
+                    {formatPrice(gift.price)}
+                  </div>
+                </div>
+                <div
+                  style={{ display: "flex", gap: "10px", alignItems: "center" }}
+                >
+                  {gift.status === "available" && (
+                    <button
+                      onClick={() => {
+                        setSelectedGift(gift);
+                        setShowReserveModal(true);
+                        setErrorMessage(null);
+                        setReserveStatus(null);
+                        fetchGuests(); // Atualiza convidados ao abrir modal
+                      }}
+                      style={btnStylePinkSoft}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor =
+                          "var(--color-pink-deep)";
+                        e.currentTarget.style.transform = "scale(1.05)";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor =
+                          "var(--color-pink-soft)";
+                        e.currentTarget.style.transform = "scale(1)";
+                      }}
+                    >
+                      Reservar
+                    </button>
+                  )}
+                  {gift.status === "reserved" && (
+                    <button
+                      onClick={() => handleConfirmPurchase(gift)}
+                      style={btnStyleGreen}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = "#218838";
+                        e.currentTarget.style.transform = "scale(1.05)";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = "#28a745";
+                        e.currentTarget.style.transform = "scale(1)";
+                      }}
+                    >
+                      Confirmar Compra
+                    </button>
+                  )}
+                  {gift.status === "purchased" && (
+                    <span
+                      style={{
+                        padding: "8px 16px",
+                        backgroundColor: "#6c757d",
+                        color: "white",
+                        borderRadius: "20px",
+                        fontSize: "0.9em",
+                        fontWeight: "bold",
+                      }}
+                    >
+                      Comprado
+                    </span>
+                  )}
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    </div>
+  );
 
   return (
     <div
       style={{
-        maxWidth: "900px",
+        maxWidth: "800px",
         margin: "50px auto",
-        padding: "30px",
-        borderRadius: "20px",
-        background: "linear-gradient(135deg, #fff0f5, #fbe7ef)",
-        boxShadow: "0 8px 24px rgba(255, 192, 203, 0.4)",
+        padding: "20px",
+        backgroundColor: "var(--color-white)",
+        borderRadius: "8px",
+        boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
         fontFamily: "'Times New Roman', serif",
-        color: "var(--color-pink-deep)",
+        color: "var(--color-dark-gray)",
       }}
     >
       <h1
         style={{
+          color: "var(--color-deep-rose)",
+          fontSize: "2em",
+          marginBottom: "20px",
           textAlign: "center",
-          fontSize: "2.4em",
-          marginBottom: "10px",
         }}
       >
-        🎁 Lista de Presentes
+        Lista de Presentes
       </h1>
-
-      <p
-        style={{
-          textAlign: "center",
-          marginBottom: "30px",
-          fontSize: "1.1em",
-          color: "var(--color-pink-deep)",
-        }}
-      >
+      <p style={{ textAlign: "center", marginBottom: "30px" }}>
         Escolha um presente para reservar ou confirme a compra dos presentes já
         reservados.
       </p>
 
-      <input
-        type="text"
-        value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)}
-        placeholder="🔍 Pesquisar presentes..."
-        style={{
-          width: "100%",
-          padding: "12px 18px",
-          marginBottom: "30px",
-          borderRadius: "30px",
-          border: "2px solid #f8c8dc",
-          outline: "none",
-          fontSize: "1em",
-          boxShadow: "0 2px 4px rgba(248, 200, 220, 0.4)",
-          transition: "all 0.3s ease",
-          color: "var(--color-pink-deep)",
-        }}
-      />
-
-      <div style={{ display: "flex", gap: "30px", flexWrap: "wrap" }}>
-        {[{
-          title: "Disponíveis",
-          icon: "🎁",
-          data: availableGifts,
-          color: "#fff5fa",
-          hoverColor: "#ffe6f2",
-        }, {
-          title: "Reservados",
-          icon: "⏳",
-          data: reservedGifts,
-          color: "#fff9f0",
-          hoverColor: "#fff0d6",
-        }, {
-          title: "Comprados",
-          icon: "✅",
-          data: purchasedGifts,
-          color: "#f0fff7",
-          hoverColor: "#d6fff0",
-        }].map(({ title, icon, data, color, hoverColor }) => (
-          <div
-            key={title}
-            style={{
-              backgroundColor: color,
-              borderRadius: "15px",
-              padding: "20px",
-              flex: "1 1 280px",
-              maxHeight: "400px",
-              overflowY: "auto",
-              boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
-              display: "flex",
-              flexDirection: "column",
-            }}
-          >
-            <h2
-              style={{
-                color: "var(--color-pink-deep)",
-                fontSize: "1.4em",
-                marginBottom: "15px",
-                textAlign: "center",
-              }}
-            >
-              {icon} {title} ({data.length})
-            </h2>
-
-            {data.length === 0 ? (
-              <p style={{ color: "#aaa", textAlign: "center", marginTop: "auto" }}>
-                Nenhum presente nesta categoria.
-              </p>
-            ) : (
-              <ul
-                style={{
-                  listStyle: "none",
-                  padding: 0,
-                  margin: 0,
-                  display: "grid",
-                  gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))",
-                  gap: "15px",
-                  flexGrow: 1,
-                  overflowY: "auto",
-                }}
-              >
-                {data.map((gift) => (
-                  <li
-                    key={gift.id}
-                    style={{
-                      background: "white",
-                      borderRadius: "10px",
-                      padding: "15px 20px",
-                      boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                      cursor: "default",
-                      transition: "background-color 0.3s ease",
-                    }}
-                    onMouseEnter={(e) => {
-                      (e.currentTarget as HTMLElement).style.backgroundColor = hoverColor;
-                    }}
-                    onMouseLeave={(e) => {
-                      (e.currentTarget as HTMLElement).style.backgroundColor = "white";
-                    }}
-                  >
-                    <div>
-                      <div
-                        style={{
-                          fontWeight: "bold",
-                          fontSize: "1.1em",
-                          color: "var(--color-dark-gray)",
-                        }}
-                      >
-                        {gift.name}
-                      </div>
-                      <div
-                        style={{
-                          color: "var(--color-pink-deep)",
-                          marginTop: "5px",
-                          fontWeight: "bold",
-                        }}
-                      >
-                        {formatPrice(gift.price)}
-                      </div>
-                    </div>
-                    <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
-                      {gift.status === "available" && (
-                        <button
-                          onClick={() => {
-                            setSelectedGift(gift);
-                            setShowReserveModal(true);
-                            setErrorMessage(null);
-                            setReserveStatus(null);
-                            fetchGuests();
-                          }}
-                          style={btnStylePinkSoft}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.backgroundColor = "var(--color-pink-deep)";
-                            e.currentTarget.style.transform = "scale(1.05)";
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.backgroundColor = "var(--color-pink-soft)";
-                            e.currentTarget.style.transform = "scale(1)";
-                          }}
-                        >
-                          Reservar
-                        </button>
-                      )}
-                      {gift.status === "reserved" && (
-                        <button
-                          onClick={() => handleConfirmPurchase(gift)}
-                          style={btnStyleGreen}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.backgroundColor = "#218838";
-                            e.currentTarget.style.transform = "scale(1.05)";
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.backgroundColor = "#28a745";
-                            e.currentTarget.style.transform = "scale(1)";
-                          }}
-                        >
-                          Confirmar Compra
-                        </button>
-                      )}
-                      {gift.status === "purchased" && (
-                        <span
-                          style={{
-                            padding: "8px 16px",
-                            backgroundColor: "#6c757d",
-                            color: "white",
-                            borderRadius: "20px",
-                            fontSize: "0.9em",
-                            fontWeight: "bold",
-                          }}
-                        >
-                          Comprado
-                        </span>
-                      )}
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-        ))}
+      {/* Barra de Pesquisa */}
+      <div style={{ marginBottom: "30px" }}>
+        <input
+          type="text"
+          placeholder="🔍 Pesquisar presentes..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          style={{
+            width: "100%",
+            padding: "12px 15px",
+            borderRadius: "25px",
+            border: "1px solid var(--color-light-gray)",
+            fontSize: "1em",
+            outline: "none",
+            transition: "border-color 0.3s ease",
+            boxShadow: "0 2px 4px rgba(0,0,0,0.05)",
+          }}
+          onFocus={(e) => {
+            e.target.style.borderColor = "var(--color-pink-soft)";
+            e.target.style.boxShadow = "0 0 0 3px rgba(255, 192, 203, 0.2)";
+          }}
+          onBlur={(e) => {
+            e.target.style.borderColor = "var(--color-light-gray)";
+            e.target.style.boxShadow = "0 2px 4px rgba(0,0,0,0.05)";
+          }}
+        />
       </div>
 
-      {/* Modal Reserva */}
+      {isLoadingGifts ? (
+        <p style={{ textAlign: "center" }}>Carregando presentes...</p>
+      ) : (
+        <div style={{ display: "flex", flexDirection: "column", gap: "25px" }}>
+          {renderGiftList(
+            availableGifts,
+            "Disponíveis",
+            "🎁",
+            "Nenhum presente disponível no momento.",
+            "#f0f8ff",
+            "#e6f3ff"
+          )}
+
+          {renderGiftList(
+            reservedGifts,
+            "Reservados",
+            "⏳",
+            "Nenhum presente reservado.",
+            "#fff8f0",
+            "#ffebcc"
+          )}
+
+          {renderGiftList(
+            purchasedGifts,
+            "Comprados",
+            "✅",
+            "Nenhum presente comprado ainda.",
+            "#f0fff0",
+            "#e6ffe6"
+          )}
+        </div>
+      )}
+
+      {/* Modal de Reserva */}
       {showReserveModal && selectedGift && (
         <div
           style={{
             position: "fixed",
             top: 0,
             left: 0,
-            width: "100%",
-            height: "100%",
+            width: "100vw",
+            height: "100vh",
             backgroundColor: "rgba(0,0,0,0.5)",
             display: "flex",
             justifyContent: "center",
             alignItems: "center",
             zIndex: 1000,
-          }}
-          onClick={() => {
-            // Fecha modal ao clicar fora do conteúdo
-            setShowReserveModal(false);
-            setSelectedGift(null);
-            setSelectedGuestId("");
-            setErrorMessage(null);
-            setReserveStatus(null);
           }}
         >
           <div
@@ -426,11 +437,10 @@ export default function ListaPresentes() {
               width: "90%",
               boxShadow: "0 4px 20px rgba(0,0,0,0.3)",
             }}
-            onClick={(e) => e.stopPropagation()} // impede fechar modal ao clicar dentro
           >
             <h3
               style={{
-                color: "var(--color-pink-deep)",
+                color: "var(--color-deep-rose)",
                 marginBottom: "15px",
                 textAlign: "center",
               }}
@@ -440,7 +450,9 @@ export default function ListaPresentes() {
             <div style={{ marginBottom: "20px", textAlign: "center" }}>
               <strong>{selectedGift.name}</strong>
               <br />
-              <span style={{ color: "var(--color-pink-deep)", fontWeight: "bold" }}>
+              <span
+                style={{ color: "var(--color-deep-rose)", fontWeight: "bold" }}
+              >
                 {formatPrice(selectedGift.price)}
               </span>
             </div>
@@ -451,7 +463,9 @@ export default function ListaPresentes() {
               </p>
             )}
             {errorMessage && (
-              <p style={{ color: "red", textAlign: "center" }}>{errorMessage}</p>
+              <p style={{ color: "red", textAlign: "center" }}>
+                {errorMessage}
+              </p>
             )}
 
             <div style={{ marginBottom: "20px" }}>
@@ -459,7 +473,12 @@ export default function ListaPresentes() {
                 Selecione o Convidado: <span style={{ color: "red" }}>*</span>
               </label>
               {isLoadingGuests ? (
-                <p style={{ color: "var(--color-pink-deep)", textAlign: "center" }}>
+                <p
+                  style={{
+                    color: "var(--color-deep-rose)",
+                    textAlign: "center",
+                  }}
+                >
                   Carregando convidados...
                 </p>
               ) : guests.length === 0 ? (
@@ -506,11 +525,7 @@ export default function ListaPresentes() {
             </div>
 
             <div
-              style={{
-                display: "flex",
-                gap: "10px",
-                justifyContent: "center",
-              }}
+              style={{ display: "flex", gap: "10px", justifyContent: "center" }}
             >
               <button
                 onClick={() => {
@@ -547,7 +562,9 @@ export default function ListaPresentes() {
                       : "pointer",
                 }}
               >
-                {reserveStatus === "loading" ? "Reservando..." : "Confirmar Reserva"}
+                {reserveStatus === "loading"
+                  ? "Reservando..."
+                  : "Confirmar Reserva"}
               </button>
             </div>
           </div>
