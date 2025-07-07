@@ -40,17 +40,6 @@ export default function Footer() {
           borderRadius: '2px'
         }}></div>
 
-        {/* Mensagem principal */}
-        <p style={{
-          color: '#374151',
-          fontSize: '1.1em',
-          fontWeight: '500',
-          margin: '0 0 15px 0',
-          lineHeight: '1.6'
-        }}>
-          Nosso Casamento
-        </p>
-
         {/* Submensagem */}
         <p style={{
           color: '#6b7280',
