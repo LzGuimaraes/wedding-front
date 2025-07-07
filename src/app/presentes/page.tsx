@@ -1,3 +1,5 @@
+// ListaPresentes.tsx com limite de altura e scroll nos quadrantes de presentes
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -108,19 +110,24 @@ export default function ListaPresentes() {
           data: purchasedGifts,
           color: "#f0fff7"
         }].map(({ title, icon, data, color }) => (
-          <div key={title} style={{ backgroundColor: color, borderRadius: "15px", padding: "20px" }}>
+          <div key={title} style={{
+            backgroundColor: color,
+            borderRadius: "15px",
+            padding: "20px",
+            maxHeight: "400px",
+            overflowY: "auto"
+          }}>
             <h2 style={{ color: "var(--color-pink-deep)", fontSize: "1.4em", marginBottom: "10px" }}>{icon} {title}</h2>
             {data.length === 0 ? (
               <p style={{ color: "#aaa", textAlign: "center" }}>Nenhum presente nesta categoria.</p>
             ) : (
-              // AQUI ESTÁ O AJUSTE PRINCIPAL
               <ul style={{
                 listStyle: "none",
                 padding: 0,
                 margin: 0,
                 display: "grid",
-                gap: "20px", // Aumentado o espaçamento para o grid
-                gridTemplateColumns: "repeat(auto-fill, minmax(250px, 1fr))" // Adicionado para criar o grid
+                gap: "20px",
+                gridTemplateColumns: "repeat(auto-fill, minmax(250px, 1fr))"
               }}>
                 {data.map(gift => (
                   <li key={gift.id} style={{
