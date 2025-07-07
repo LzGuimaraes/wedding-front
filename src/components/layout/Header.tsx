@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -45,7 +46,7 @@ export default function Header() {
         flex: '1',
         letterSpacing: '-0.02em'
       }}>
-        <a href="/" style={{ 
+        <Link href="/" style={{ 
           textDecoration: 'none', 
           color: 'inherit',
           display: 'flex',
@@ -53,7 +54,7 @@ export default function Header() {
           gap: '8px'
         }}>
           💕 Nosso Casamento
-        </a>
+        </Link>
       </div>
 
       {/* Menu Desktop */}
@@ -68,7 +69,7 @@ export default function Header() {
             alignItems: 'center'
           }}>
             <li>
-              <a href="/" style={{ 
+              <Link href="/" style={{ 
                 textDecoration: 'none', 
                 color: '#374151', 
                 fontSize: '1em',
@@ -94,10 +95,10 @@ export default function Header() {
               }}
               >
                 🏠 Home
-              </a>
+              </Link>
             </li>
             <li>
-              <a href="/confirmar-presenca" style={{ 
+              <Link href="/confirmar-presenca" style={{ 
                 textDecoration: 'none', 
                 color: '#374151', 
                 fontSize: '1em',
@@ -123,10 +124,10 @@ export default function Header() {
               }}
               >
                 ✅ Confirmar Presença
-              </a>
+              </Link>
             </li>
             <li>
-              <a href="/presentes" style={{ 
+              <Link href="/presentes" style={{ 
                 textDecoration: 'none', 
                 color: '#374151', 
                 fontSize: '1em',
@@ -152,7 +153,7 @@ export default function Header() {
               }}
               >
                 🎁 Lista de Presentes
-              </a>
+              </Link>
             </li>
           </ul>
         </nav>
@@ -222,7 +223,7 @@ export default function Header() {
             gap: '5px'
           }}>
             <li>
-              <a 
+              <Link 
                 href="/" 
                 style={{ 
                   textDecoration: 'none', 
@@ -249,10 +250,10 @@ export default function Header() {
               >
                 <span style={{ fontSize: '1.2em' }}>🏠</span>
                 Home
-              </a>
+              </Link>
             </li>
             <li>
-              <a 
+              <Link 
                 href="/confirmar-presenca" 
                 style={{ 
                   textDecoration: 'none', 
@@ -279,10 +280,10 @@ export default function Header() {
               >
                 <span style={{ fontSize: '1.2em' }}>✅</span>
                 Confirmar Presença
-              </a>
+              </Link>
             </li>
             <li>
-              <a 
+              <Link 
                 href="/presentes" 
                 style={{ 
                   textDecoration: 'none', 
@@ -309,7 +310,7 @@ export default function Header() {
               >
                 <span style={{ fontSize: '1.2em' }}>🎁</span>
                 Lista de Presentes
-              </a>
+              </Link>
             </li>
           </ul>
         </nav>
