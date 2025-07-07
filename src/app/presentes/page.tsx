@@ -1,5 +1,3 @@
-// ListaPresentes.tsx com estilo floral refinado e limpeza de variáveis não utilizadas
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -115,7 +113,15 @@ export default function ListaPresentes() {
             {data.length === 0 ? (
               <p style={{ color: "#aaa", textAlign: "center" }}>Nenhum presente nesta categoria.</p>
             ) : (
-              <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "grid", gap: "15px" }}>
+              // AQUI ESTÁ O AJUSTE PRINCIPAL
+              <ul style={{
+                listStyle: "none",
+                padding: 0,
+                margin: 0,
+                display: "grid",
+                gap: "20px", // Aumentado o espaçamento para o grid
+                gridTemplateColumns: "repeat(auto-fill, minmax(250px, 1fr))" // Adicionado para criar o grid
+              }}>
                 {data.map(gift => (
                   <li key={gift.id} style={{
                     background: "white",
