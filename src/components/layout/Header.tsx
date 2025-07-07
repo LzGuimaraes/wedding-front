@@ -1,6 +1,5 @@
 "use client";
 
-import Link from 'next/link';
 import { useState, useEffect } from 'react';
 
 export default function Header() {
@@ -24,26 +23,37 @@ export default function Header() {
 
   return (
     <header style={{
-      backgroundColor: 'var(--color-white)',
-      padding: isMobile ? '10px 15px' : '15px 20px',
-      borderBottom: '1px solid var(--color-light-gray)',
-      boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+      background: 'linear-gradient(135deg, #ffffff 0%, #fdf2f8 100%)',
+      padding: isMobile ? '15px 20px' : '20px 30px',
+      borderBottom: '1px solid rgba(236, 72, 153, 0.1)',
+      boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
       display: 'flex',
       justifyContent: 'space-between',
       alignItems: 'center',
-      fontFamily: 'inherit',
-      position: 'relative'
+      fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+      position: 'relative',
+      backdropFilter: 'blur(10px)',
+      zIndex: 1000
     }}>
       {/* Logo/Título */}
       <div style={{ 
-        fontSize: isMobile ? '1.3em' : '1.8em', 
-        fontWeight: 'bold', 
-        color: 'var(--color-deep-rose)',
-        flex: '1'
+        fontSize: isMobile ? '1.5em' : '2em', 
+        fontWeight: '700', 
+        background: 'linear-gradient(135deg, #ec4899 0%, #f43f5e 100%)',
+        WebkitBackgroundClip: 'text',
+        WebkitTextFillColor: 'transparent',
+        flex: '1',
+        letterSpacing: '-0.02em'
       }}>
-        <Link href="/" style={{ textDecoration: 'none', color: 'inherit' }}>
-          Nosso Casamento
-        </Link>
+        <a href="/" style={{ 
+          textDecoration: 'none', 
+          color: 'inherit',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px'
+        }}>
+          💕 Nosso Casamento
+        </a>
       </div>
 
       {/* Menu Desktop */}
@@ -54,38 +64,95 @@ export default function Header() {
             margin: 0, 
             padding: 0, 
             display: 'flex', 
-            gap: '25px',
+            gap: '30px',
             alignItems: 'center'
           }}>
             <li>
-              <Link href="/" style={{ 
+              <a href="/" style={{ 
                 textDecoration: 'none', 
-                color: 'var(--color-deep-rose)', 
-                fontSize: '1.1em',
-                whiteSpace: 'nowrap'
-              }}>
-                Home
-              </Link>
+                color: '#374151', 
+                fontSize: '1em',
+                fontWeight: '500',
+                whiteSpace: 'nowrap',
+                padding: '10px 16px',
+                borderRadius: '25px',
+                transition: 'all 0.3s ease',
+                position: 'relative',
+                overflow: 'hidden'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'linear-gradient(135deg, #ec4899 0%, #f43f5e 100%)';
+                e.currentTarget.style.color = 'white';
+                e.currentTarget.style.transform = 'translateY(-2px)';
+                e.currentTarget.style.boxShadow = '0 4px 15px rgba(236, 72, 153, 0.3)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'transparent';
+                e.currentTarget.style.color = '#374151';
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = 'none';
+              }}
+              >
+                🏠 Home
+              </a>
             </li>
             <li>
-              <Link href="/confirmar-presenca" style={{ 
+              <a href="/confirmar-presenca" style={{ 
                 textDecoration: 'none', 
-                color: 'var(--color-deep-rose)', 
-                fontSize: '1.1em',
-                whiteSpace: 'nowrap'
-              }}>
-                Confirmar Presença
-              </Link>
+                color: '#374151', 
+                fontSize: '1em',
+                fontWeight: '500',
+                whiteSpace: 'nowrap',
+                padding: '10px 16px',
+                borderRadius: '25px',
+                transition: 'all 0.3s ease',
+                position: 'relative',
+                overflow: 'hidden'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'linear-gradient(135deg, #ec4899 0%, #f43f5e 100%)';
+                e.currentTarget.style.color = 'white';
+                e.currentTarget.style.transform = 'translateY(-2px)';
+                e.currentTarget.style.boxShadow = '0 4px 15px rgba(236, 72, 153, 0.3)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'transparent';
+                e.currentTarget.style.color = '#374151';
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = 'none';
+              }}
+              >
+                ✅ Confirmar Presença
+              </a>
             </li>
             <li>
-              <Link href="/presentes" style={{ 
+              <a href="/presentes" style={{ 
                 textDecoration: 'none', 
-                color: 'var(--color-deep-rose)', 
-                fontSize: '1.1em',
-                whiteSpace: 'nowrap'
-              }}>
-                Lista de Presentes
-              </Link>
+                color: '#374151', 
+                fontSize: '1em',
+                fontWeight: '500',
+                whiteSpace: 'nowrap',
+                padding: '10px 16px',
+                borderRadius: '25px',
+                transition: 'all 0.3s ease',
+                position: 'relative',
+                overflow: 'hidden'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'linear-gradient(135deg, #ec4899 0%, #f43f5e 100%)';
+                e.currentTarget.style.color = 'white';
+                e.currentTarget.style.transform = 'translateY(-2px)';
+                e.currentTarget.style.boxShadow = '0 4px 15px rgba(236, 72, 153, 0.3)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'transparent';
+                e.currentTarget.style.color = '#374151';
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = 'none';
+              }}
+              >
+                🎁 Lista de Presentes
+              </a>
             </li>
           </ul>
         </nav>
@@ -96,12 +163,34 @@ export default function Header() {
         <button
           onClick={toggleMenu}
           style={{
-            background: 'none',
+            background: isMenuOpen 
+              ? 'linear-gradient(135deg, #ec4899 0%, #f43f5e 100%)'
+              : 'rgba(236, 72, 153, 0.1)',
             border: 'none',
             fontSize: '1.5em',
-            color: 'var(--color-deep-rose)',
+            color: isMenuOpen ? 'white' : '#ec4899',
             cursor: 'pointer',
-            padding: '5px'
+            padding: '12px 15px',
+            borderRadius: '12px',
+            transition: 'all 0.3s ease',
+            transform: isMenuOpen ? 'rotate(90deg)' : 'rotate(0deg)',
+            boxShadow: isMenuOpen 
+              ? '0 4px 15px rgba(236, 72, 153, 0.3)'
+              : '0 2px 8px rgba(236, 72, 153, 0.1)'
+          }}
+          onMouseEnter={(e) => {
+            if (!isMenuOpen) {
+              e.currentTarget.style.background = 'linear-gradient(135deg, #ec4899 0%, #f43f5e 100%)';
+              e.currentTarget.style.color = 'white';
+              e.currentTarget.style.transform = 'scale(1.1)';
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (!isMenuOpen) {
+              e.currentTarget.style.background = 'rgba(236, 72, 153, 0.1)';
+              e.currentTarget.style.color = '#ec4899';
+              e.currentTarget.style.transform = 'scale(1)';
+            }
           }}
         >
           ☰
@@ -115,70 +204,129 @@ export default function Header() {
           top: '100%',
           left: 0,
           right: 0,
-          backgroundColor: 'var(--color-white)',
-          borderBottom: '1px solid var(--color-light-gray)',
-          boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-          zIndex: 1000
+          background: 'linear-gradient(135deg, #ffffff 0%, #fdf2f8 100%)',
+          borderRadius: '0 0 20px 20px',
+          boxShadow: '0 8px 25px rgba(0,0,0,0.15)',
+          zIndex: 999,
+          backdropFilter: 'blur(10px)',
+          border: '1px solid rgba(236, 72, 153, 0.1)',
+          borderTop: 'none',
+          animation: 'slideDown 0.3s ease-out'
         }}>
           <ul style={{ 
             listStyle: 'none', 
             margin: 0, 
-            padding: '10px 0', 
+            padding: '20px 0', 
             display: 'flex',
             flexDirection: 'column',
-            gap: '0'
+            gap: '5px'
           }}>
             <li>
-              <Link 
+              <a 
                 href="/" 
                 style={{ 
                   textDecoration: 'none', 
-                  color: 'var(--color-deep-rose)', 
+                  color: '#374151', 
                   fontSize: '1.1em',
-                  display: 'block',
-                  padding: '12px 20px',
-                  borderBottom: '1px solid var(--color-light-gray)'
+                  fontWeight: '500',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '12px',
+                  padding: '15px 25px',
+                  margin: '0 10px',
+                  borderRadius: '12px',
+                  transition: 'all 0.3s ease'
                 }}
                 onClick={() => setIsMenuOpen(false)}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = 'rgba(236, 72, 153, 0.1)';
+                  e.currentTarget.style.transform = 'translateX(10px)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'transparent';
+                  e.currentTarget.style.transform = 'translateX(0)';
+                }}
               >
+                <span style={{ fontSize: '1.2em' }}>🏠</span>
                 Home
-              </Link>
+              </a>
             </li>
             <li>
-              <Link 
+              <a 
                 href="/confirmar-presenca" 
                 style={{ 
                   textDecoration: 'none', 
-                  color: 'var(--color-deep-rose)', 
+                  color: '#374151', 
                   fontSize: '1.1em',
-                  display: 'block',
-                  padding: '12px 20px',
-                  borderBottom: '1px solid var(--color-light-gray)'
+                  fontWeight: '500',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '12px',
+                  padding: '15px 25px',
+                  margin: '0 10px',
+                  borderRadius: '12px',
+                  transition: 'all 0.3s ease'
                 }}
                 onClick={() => setIsMenuOpen(false)}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = 'rgba(236, 72, 153, 0.1)';
+                  e.currentTarget.style.transform = 'translateX(10px)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'transparent';
+                  e.currentTarget.style.transform = 'translateX(0)';
+                }}
               >
+                <span style={{ fontSize: '1.2em' }}>✅</span>
                 Confirmar Presença
-              </Link>
+              </a>
             </li>
             <li>
-              <Link 
+              <a 
                 href="/presentes" 
                 style={{ 
                   textDecoration: 'none', 
-                  color: 'var(--color-deep-rose)', 
+                  color: '#374151', 
                   fontSize: '1.1em',
-                  display: 'block',
-                  padding: '12px 20px'
+                  fontWeight: '500',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '12px',
+                  padding: '15px 25px',
+                  margin: '0 10px',
+                  borderRadius: '12px',
+                  transition: 'all 0.3s ease'
                 }}
                 onClick={() => setIsMenuOpen(false)}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = 'rgba(236, 72, 153, 0.1)';
+                  e.currentTarget.style.transform = 'translateX(10px)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'transparent';
+                  e.currentTarget.style.transform = 'translateX(0)';
+                }}
               >
+                <span style={{ fontSize: '1.2em' }}>🎁</span>
                 Lista de Presentes
-              </Link>
+              </a>
             </li>
           </ul>
         </nav>
       )}
 
+      <style jsx>{`
+        @keyframes slideDown {
+          from {
+            opacity: 0;
+            transform: translateY(-10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+      `}</style>
     </header>
   );
 }
