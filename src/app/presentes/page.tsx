@@ -1,4 +1,4 @@
-// ListaPresentes.tsx com estilo floral refinado
+// ListaPresentes.tsx com estilo floral refinado e limpeza de variáveis não utilizadas
 
 "use client";
 
@@ -12,34 +12,13 @@ interface Gift {
   guest_id?: number;
 }
 
-interface Guest {
-  id: number;
-  name: string;
-  email?: string;
-}
-
-interface GuestApiResponse {
-  id: number;
-  full_name: string;
-  email?: string;
-}
-
 export default function ListaPresentes() {
   const [gifts, setGifts] = useState<Gift[]>([]);
-  const [guests, setGuests] = useState<Guest[]>([]);
-  const [isLoadingGifts, setIsLoadingGifts] = useState(true);
-  const [isLoadingGuests, setIsLoadingGuests] = useState(false);
   const [searchTerm, setSearchTerm] = useState<string>("");
-  const [selectedGift, setSelectedGift] = useState<Gift | null>(null);
-  const [showReserveModal, setShowReserveModal] = useState(false);
-  const [selectedGuestId, setSelectedGuestId] = useState<number | "">("");
-  const [reserveStatus, setReserveStatus] = useState<string | null>(null);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "";
 
   const fetchGifts = async () => {
-    setIsLoadingGifts(true);
     try {
       const response = await fetch(`${API_BASE_URL}/api/gifts`);
       if (!response.ok)
@@ -47,38 +26,12 @@ export default function ListaPresentes() {
       const data: Gift[] = await response.json();
       setGifts(data);
     } catch (error: unknown) {
-      const err = error as Error;
-      setErrorMessage(err.message);
-    } finally {
-      setIsLoadingGifts(false);
-    }
-  };
-
-  const fetchGuests = async () => {
-    setIsLoadingGuests(true);
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/guests/confirmed`);
-      if (!response.ok)
-        throw new Error(`HTTP error! status: ${response.status}`);
-      const data: GuestApiResponse[] = await response.json();
-      const validGuests = data.map((guest) => ({
-        id: guest.id,
-        name: guest.full_name,
-        email: guest.email,
-      })).filter((guest) => guest.id && guest.name.trim().length > 0);
-      setGuests(validGuests);
-    } catch (error: unknown) {
-      const err = error as Error;
-      setErrorMessage("Erro ao carregar convidados. Tente novamente.");
-      setGuests([]);
-    } finally {
-      setIsLoadingGuests(false);
+      console.error("Erro ao buscar presentes:", error);
     }
   };
 
   useEffect(() => {
     fetchGifts();
-    fetchGuests();
   }, []);
 
   const filterGiftsBySearch = (gifts: Gift[]) =>
