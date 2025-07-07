@@ -26,7 +26,7 @@ export default function ConfirmarPresencaPage() {
   const [isLoadingGuests, setIsLoadingGuests] = useState(true);
   const [searchTerm, setSearchTerm] = useState<string>("");
 
-  const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "";
 
   const fetchAllGuests = useCallback(async () => {
     setIsLoadingGuests(true);
@@ -147,6 +147,11 @@ export default function ConfirmarPresencaPage() {
     }
   };
 
+  // Constantes para cores usadas na estilização
+  const borderColorDefault = "var(--color-light-gray)";
+  const borderColorFocus = "var(--color-pink-soft)";
+  const boxShadowFocus = "0 0 6px 2px rgba(255, 192, 203, 0.4)";
+
   return (
     <div
       style={{
@@ -211,7 +216,17 @@ export default function ConfirmarPresencaPage() {
               width: "100%",
               padding: "10px",
               borderRadius: "5px",
-              border: "1px solid var(--color-light-gray)",
+              border: `1.8px solid ${borderColorDefault}`,
+              transition: "border-color 0.3s ease, box-shadow 0.3s ease",
+              outline: "none",
+            }}
+            onFocus={(e) => {
+              e.currentTarget.style.borderColor = borderColorFocus;
+              e.currentTarget.style.boxShadow = boxShadowFocus;
+            }}
+            onBlur={(e) => {
+              e.currentTarget.style.borderColor = borderColorDefault;
+              e.currentTarget.style.boxShadow = "none";
             }}
           />
         </div>
@@ -233,7 +248,17 @@ export default function ConfirmarPresencaPage() {
               width: "100%",
               padding: "10px",
               borderRadius: "5px",
-              border: "1px solid var(--color-light-gray)",
+              border: `1.8px solid ${borderColorDefault}`,
+              transition: "border-color 0.3s ease, box-shadow 0.3s ease",
+              outline: "none",
+            }}
+            onFocus={(e) => {
+              e.currentTarget.style.borderColor = borderColorFocus;
+              e.currentTarget.style.boxShadow = boxShadowFocus;
+            }}
+            onBlur={(e) => {
+              e.currentTarget.style.borderColor = borderColorDefault;
+              e.currentTarget.style.boxShadow = "none";
             }}
           />
         </div>
@@ -254,8 +279,18 @@ export default function ConfirmarPresencaPage() {
               width: "100%",
               padding: "10px",
               borderRadius: "5px",
-              border: "1px solid var(--color-light-gray)",
+              border: `1.8px solid ${borderColorDefault}`,
               resize: "vertical",
+              transition: "border-color 0.3s ease, box-shadow 0.3s ease",
+              outline: "none",
+            }}
+            onFocus={(e) => {
+              e.currentTarget.style.borderColor = borderColorFocus;
+              e.currentTarget.style.boxShadow = boxShadowFocus;
+            }}
+            onBlur={(e) => {
+              e.currentTarget.style.borderColor = borderColorDefault;
+              e.currentTarget.style.boxShadow = "none";
             }}
           />
         </div>
@@ -318,19 +353,19 @@ export default function ConfirmarPresencaPage() {
               width: "100%",
               padding: "12px 15px",
               borderRadius: "25px",
-              border: "1px solid var(--color-light-gray)",
+              border: `1.8px solid ${borderColorDefault}`,
               fontSize: "1em",
               outline: "none",
-              transition: "border-color 0.3s ease",
+              transition: "border-color 0.3s ease, box-shadow 0.3s ease",
               boxShadow: "0 2px 4px rgba(0,0,0,0.05)",
             }}
             onFocus={(e) => {
-              e.target.style.borderColor = "var(--color-pink-soft)";
-              e.target.style.boxShadow = "0 0 0 3px rgba(255, 192, 203, 0.2)";
+              e.currentTarget.style.borderColor = borderColorFocus;
+              e.currentTarget.style.boxShadow = boxShadowFocus;
             }}
             onBlur={(e) => {
-              e.target.style.borderColor = "var(--color-light-gray)";
-              e.target.style.boxShadow = "0 2px 4px rgba(0,0,0,0.05)";
+              e.currentTarget.style.borderColor = borderColorDefault;
+              e.currentTarget.style.boxShadow = "0 2px 4px rgba(0,0,0,0.05)";
             }}
           />
         </div>
@@ -338,9 +373,7 @@ export default function ConfirmarPresencaPage() {
         {isLoadingGuests ? (
           <p style={{ textAlign: "center" }}>Carregando lista...</p>
         ) : (
-          <div
-            style={{ display: "flex", flexDirection: "column", gap: "20px" }}
-          >
+          <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
             {/* Convidados Confirmados */}
             <div>
               <h3
@@ -357,7 +390,7 @@ export default function ConfirmarPresencaPage() {
                 style={{
                   maxHeight: "200px",
                   overflowY: "auto",
-                  border: "1px solid var(--color-light-gray)",
+                  border: `1.8px solid ${borderColorDefault}`,
                   borderRadius: "8px",
                   backgroundColor: "#f9f9f9",
                   padding: "10px",
@@ -367,7 +400,7 @@ export default function ConfirmarPresencaPage() {
                   <p
                     style={{
                       textAlign: "center",
-                      color: "var(--color-light-gray)",
+                      color: borderColorDefault,
                       margin: "20px 0",
                     }}
                   >
@@ -384,7 +417,7 @@ export default function ConfirmarPresencaPage() {
                           padding: "12px 15px",
                           borderBottom:
                             index < filteredConfirmedGuests.length - 1
-                              ? "1px dashed var(--color-light-gray)"
+                              ? `1px dashed ${borderColorDefault}`
                               : "none",
                           fontSize: "1.1em",
                           color: "var(--color-dark-gray)",
@@ -424,7 +457,7 @@ export default function ConfirmarPresencaPage() {
                 style={{
                   maxHeight: "200px",
                   overflowY: "auto",
-                  border: "1px solid var(--color-light-gray)",
+                  border: `1.8px solid ${borderColorDefault}`,
                   borderRadius: "8px",
                   backgroundColor: "#f9f9f9",
                   padding: "10px",
@@ -434,7 +467,7 @@ export default function ConfirmarPresencaPage() {
                   <p
                     style={{
                       textAlign: "center",
-                      color: "var(--color-light-gray)",
+                      color: borderColorDefault,
                       margin: "20px 0",
                     }}
                   >
@@ -451,7 +484,7 @@ export default function ConfirmarPresencaPage() {
                           padding: "12px 15px",
                           borderBottom:
                             index < filteredUnconfirmedGuests.length - 1
-                              ? "1px dashed var(--color-light-gray)"
+                              ? `1px dashed ${borderColorDefault}`
                               : "none",
                           fontSize: "1.1em",
                           color: "#999",
