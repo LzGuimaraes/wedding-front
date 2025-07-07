@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-// Removido import Link from 'next/link' - não suportado
 
 interface TimeLeft {
   days?: number;
@@ -215,6 +214,90 @@ export default function HomePage() {
         .falling-petal:nth-child(7) { left: 70%; animation-delay: 6s; }
         .falling-petal:nth-child(8) { left: 80%; animation-delay: 7s; }
         .falling-petal:nth-child(9) { left: 90%; animation-delay: 8s; }
+
+        /* Responsividade do contador */
+        .countdown-container {
+          display: flex;
+          gap: 20px;
+          margin: 30px 0;
+          background: rgba(255, 255, 255, 0.9);
+          backdrop-filter: blur(10px);
+          padding: 30px;
+          border-radius: 20px;
+          justify-content: center;
+          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+          border: 1px solid rgba(255, 255, 255, 0.3);
+          flex-wrap: nowrap;
+          overflow: hidden;
+        }
+
+        .countdown-item {
+          flex: 1;
+          min-width: 0;
+          text-align: center;
+        }
+
+        .countdown-number {
+          color: #dc3545;
+          font-size: 3em;
+          margin: 0;
+          line-height: 1;
+          font-weight: bold;
+          white-space: nowrap;
+        }
+
+        .countdown-label {
+          color: #6c757d;
+          font-size: 1em;
+          margin: 5px 0 0 0;
+          white-space: nowrap;
+        }
+
+        /* Responsividade para telas pequenas */
+        @media (max-width: 768px) {
+          .countdown-container {
+            gap: 10px;
+            padding: 20px 10px;
+          }
+          
+          .countdown-number {
+            font-size: 2em;
+          }
+          
+          .countdown-label {
+            font-size: 0.8em;
+          }
+        }
+
+        @media (max-width: 480px) {
+          .countdown-container {
+            gap: 8px;
+            padding: 15px 8px;
+          }
+          
+          .countdown-number {
+            font-size: 1.5em;
+          }
+          
+          .countdown-label {
+            font-size: 0.7em;
+          }
+        }
+
+        @media (max-width: 380px) {
+          .countdown-container {
+            gap: 5px;
+            padding: 12px 5px;
+          }
+          
+          .countdown-number {
+            font-size: 1.2em;
+          }
+          
+          .countdown-label {
+            font-size: 0.6em;
+          }
+        }
       `}</style>
 
       <div className="floral-background">
@@ -268,26 +351,13 @@ export default function HomePage() {
               🎉 O grande dia chegou! 🎉
             </h2>
           ) : (
-            <div style={{
-              display: 'flex',
-              gap: '20px',
-              marginTop: '30px',
-              marginBottom: '30px',
-              backgroundColor: 'rgba(255, 255, 255, 0.9)',
-              backdropFilter: 'blur(10px)',
-              padding: '30px',
-              borderRadius: '20px',
-              flexWrap: 'wrap',
-              justifyContent: 'center',
-              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
-              border: '1px solid rgba(255, 255, 255, 0.3)'
-            }}>
+            <div className="countdown-container">
               {["Dias", "Horas", "Minutos", "Segundos"].map((label, index) => {
                 const value = [timeLeft.days, timeLeft.hours, timeLeft.minutes, timeLeft.seconds][index];
                 return (
-                  <div key={label} style={{ minWidth: '80px' }}>
-                    <h2 style={{ color: '#dc3545', fontSize: '3em', margin: 0 }}>{formatTime(value)}</h2>
-                    <p style={{ color: '#6c757d', fontSize: '1em', margin: 0 }}>{label}</p>
+                  <div key={label} className="countdown-item">
+                    <h2 className="countdown-number">{formatTime(value)}</h2>
+                    <p className="countdown-label">{label}</p>
                   </div>
                 );
               })}
