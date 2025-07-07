@@ -10,7 +10,10 @@ export const metadata: Metadata = {
   title: "Nosso Casamento",
   description: "Venha celebrar conosco o nosso grande dia!",
   keywords: "casamento, wedding, celebração",
-  robots: "index, follow"
+  robots: "index, follow",
+   icons: {
+    icon: "/favicon.svg",
+  },
 };
 
 export const viewport = {

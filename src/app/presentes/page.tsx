@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { FaWhatsapp } from 'react-icons/fa';
 
 interface Gift {
   id: number;
@@ -346,10 +347,29 @@ export default function ListaPresentes() {
       >
         Lista de Presentes
       </h1>
-      <p style={{ textAlign: "center", marginBottom: "30px" }}>
-        Escolha um presente para reservar ou confirme a compra dos presentes já
-        reservados.
-      </p>
+    
+  <p style={{ 
+    textAlign: "center", 
+    marginBottom: "30px", 
+    fontSize: '1.1em', 
+    lineHeight: '1.6' 
+  }}>
+    Reserve seu presente e realize o pagamento via PIX para a chave <strong>email@email.com</strong>
+  <br />
+    Para finalizar, envie o comprovante por WhatsApp clicando aqui: {' '}
+  <a 
+    href="https://wa.me/5565998153854" 
+    target="_blank" 
+    rel="noopener noreferrer"
+    title="Enviar comprovante pelo WhatsApp"
+  >
+    <FaWhatsapp style={{ 
+      color: '#25D366', 
+      fontSize: '28px', 
+      verticalAlign: 'middle' 
+    }} />
+  </a>
+</p>
 
       {/* Barra de Pesquisa */}
       <div style={{ marginBottom: "30px" }}>

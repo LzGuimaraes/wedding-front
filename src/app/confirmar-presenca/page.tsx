@@ -697,8 +697,6 @@ export default function ConfirmarPresencaPage() {
           )}
         </div>
       </div>
-
-
     </div>
   );
 }
