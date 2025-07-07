@@ -147,370 +147,558 @@ export default function ConfirmarPresencaPage() {
     }
   };
 
-  // Constantes para cores usadas na estilização
-  const borderColorDefault = "var(--color-light-gray)";
-  const borderColorFocus = "var(--color-pink-soft)";
-  const boxShadowFocus = "0 0 6px 2px rgba(255, 192, 203, 0.4)";
-
   return (
     <div
       style={{
-        maxWidth: "600px",
-        margin: "50px auto",
+        minHeight: "100vh",
+        background: "linear-gradient(135deg, #fdf2f8 0%, #f8fafc 50%, #f1f5f9 100%)",
+        fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
         padding: "20px",
-        backgroundColor: "var(--color-white)",
-        borderRadius: "8px",
-        boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
-        fontFamily: "inherit",
-        color: "var(--color-dark-gray)",
       }}
     >
-      <h1
+      <div
         style={{
-          color: "var(--color-deep-rose)",
-          fontSize: "2em",
-          marginBottom: "20px",
-          textAlign: "center",
+          maxWidth: "700px",
+          margin: "0 auto",
+          padding: "0",
         }}
       >
-        Confirmar Presença
-      </h1>
-      <p style={{ textAlign: "center", marginBottom: "30px" }}>
-        Por favor, preencha o formulário abaixo para confirmar sua presença no
-        nosso casamento.
-      </p>
-
-      {submissionStatus === "loading" && (
-        <p style={{ color: "blue", textAlign: "center" }}>
-          Enviando confirmação...
-        </p>
-      )}
-      {errorMessage && (
-        <p style={{ color: "red", textAlign: "center" }}>{errorMessage}</p>
-      )}
-      {submissionStatus === "success" && !errorMessage && (
-        <p style={{ color: "green", textAlign: "center" }}>
-          Presença confirmada com sucesso!
-        </p>
-      )}
-
-      <form
-        onSubmit={handleSubmit}
-        style={{ display: "flex", flexDirection: "column", gap: "15px" }}
-      >
-        <div>
-          <label
-            htmlFor="fullName"
-            style={{ display: "block", marginBottom: "5px" }}
-          >
-            Nome Completo: <span style={{ color: "red" }}>*</span>
-          </label>
-          <input
-            type="text"
-            id="fullName"
-            name="fullName"
-            value={formData.fullName}
-            onChange={handleChange}
-            required
-            style={{
-              width: "100%",
-              padding: "10px",
-              borderRadius: "5px",
-              border: `1.8px solid ${borderColorDefault}`,
-              transition: "border-color 0.3s ease, box-shadow 0.3s ease",
-              outline: "none",
-            }}
-            onFocus={(e) => {
-              e.currentTarget.style.borderColor = borderColorFocus;
-              e.currentTarget.style.boxShadow = boxShadowFocus;
-            }}
-            onBlur={(e) => {
-              e.currentTarget.style.borderColor = borderColorDefault;
-              e.currentTarget.style.boxShadow = "none";
-            }}
-          />
-        </div>
-        <div>
-          <label
-            htmlFor="email"
-            style={{ display: "block", marginBottom: "5px" }}
-          >
-            E-mail: <span style={{ color: "red" }}>*</span>
-          </label>
-          <input
-            type="email"
-            id="email"
-            name="email"
-            value={formData.email}
-            onChange={handleChange}
-            required
-            style={{
-              width: "100%",
-              padding: "10px",
-              borderRadius: "5px",
-              border: `1.8px solid ${borderColorDefault}`,
-              transition: "border-color 0.3s ease, box-shadow 0.3s ease",
-              outline: "none",
-            }}
-            onFocus={(e) => {
-              e.currentTarget.style.borderColor = borderColorFocus;
-              e.currentTarget.style.boxShadow = boxShadowFocus;
-            }}
-            onBlur={(e) => {
-              e.currentTarget.style.borderColor = borderColorDefault;
-              e.currentTarget.style.boxShadow = "none";
-            }}
-          />
-        </div>
-        <div>
-          <label
-            htmlFor="message"
-            style={{ display: "block", marginBottom: "5px" }}
-          >
-            Sua Mensagem (opcional):
-          </label>
-          <textarea
-            id="message"
-            name="message"
-            value={formData.message}
-            onChange={handleChange}
-            rows={4}
-            style={{
-              width: "100%",
-              padding: "10px",
-              borderRadius: "5px",
-              border: `1.8px solid ${borderColorDefault}`,
-              resize: "vertical",
-              transition: "border-color 0.3s ease, box-shadow 0.3s ease",
-              outline: "none",
-            }}
-            onFocus={(e) => {
-              e.currentTarget.style.borderColor = borderColorFocus;
-              e.currentTarget.style.boxShadow = boxShadowFocus;
-            }}
-            onBlur={(e) => {
-              e.currentTarget.style.borderColor = borderColorDefault;
-              e.currentTarget.style.boxShadow = "none";
-            }}
-          />
-        </div>
-        <button
-          type="submit"
-          disabled={submissionStatus === "loading"}
+        {/* Header Section */}
+        <div
           style={{
-            padding: "12px 20px",
-            backgroundColor: "var(--color-pink-soft)",
-            color: "var(--color-white)",
-            border: "none",
-            borderRadius: "5px",
-            cursor: submissionStatus === "loading" ? "not-allowed" : "pointer",
-            fontSize: "1.1em",
-            fontWeight: "bold",
-            transition: "all 0.3s ease",
-            transform: "translateY(0)",
-            boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
-          }}
-          onMouseEnter={(e) => {
-            if (submissionStatus !== "loading") {
-              e.currentTarget.style.backgroundColor = "var(--color-deep-rose)";
-              e.currentTarget.style.transform = "translateY(-2px)";
-              e.currentTarget.style.boxShadow = "0 4px 8px rgba(0,0,0,0.2)";
-            }
-          }}
-          onMouseLeave={(e) => {
-            if (submissionStatus !== "loading") {
-              e.currentTarget.style.backgroundColor = "var(--color-pink-soft)";
-              e.currentTarget.style.transform = "translateY(0)";
-              e.currentTarget.style.boxShadow = "0 2px 4px rgba(0,0,0,0.1)";
-            }
-          }}
-        >
-          {submissionStatus === "loading"
-            ? "Enviando..."
-            : "Confirmar Presença"}
-        </button>
-      </form>
-
-      <div style={{ marginTop: "40px" }}>
-        <h2
-          style={{
-            color: "var(--color-deep-rose)",
+            background: "linear-gradient(135deg, #ec4899 0%, #f43f5e 100%)",
+            borderRadius: "20px 20px 0 0",
+            padding: "40px 30px",
             textAlign: "center",
-            marginBottom: "20px",
+            color: "white",
+            position: "relative",
+            overflow: "hidden",
           }}
         >
-          Lista de Convidados
-        </h2>
-
-        {/* Barra de Pesquisa */}
-        <div style={{ marginBottom: "20px" }}>
-          <input
-            type="text"
-            placeholder="🔍 Pesquisar por nome..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+          <div
             style={{
-              width: "100%",
-              padding: "12px 15px",
-              borderRadius: "25px",
-              border: `1.8px solid ${borderColorDefault}`,
-              fontSize: "1em",
-              outline: "none",
-              transition: "border-color 0.3s ease, box-shadow 0.3s ease",
-              boxShadow: "0 2px 4px rgba(0,0,0,0.05)",
-            }}
-            onFocus={(e) => {
-              e.currentTarget.style.borderColor = borderColorFocus;
-              e.currentTarget.style.boxShadow = boxShadowFocus;
-            }}
-            onBlur={(e) => {
-              e.currentTarget.style.borderColor = borderColorDefault;
-              e.currentTarget.style.boxShadow = "0 2px 4px rgba(0,0,0,0.05)";
+              position: "absolute",
+              top: "-50px",
+              right: "-50px",
+              width: "100px",
+              height: "100px",
+              background: "rgba(255, 255, 255, 0.1)",
+              borderRadius: "50%",
+              animation: "float 3s ease-in-out infinite",
             }}
           />
+          <div
+            style={{
+              position: "absolute",
+              bottom: "-30px",
+              left: "-30px",
+              width: "60px",
+              height: "60px",
+              background: "rgba(255, 255, 255, 0.1)",
+              borderRadius: "50%",
+              animation: "float 2s ease-in-out infinite reverse",
+            }}
+          />
+          <h1
+            style={{
+              fontSize: "2.5em",
+              marginBottom: "10px",
+              fontWeight: "700",
+              letterSpacing: "-0.02em",
+              textShadow: "0 2px 10px rgba(0,0,0,0.1)",
+            }}
+          >
+            💕 Confirmar Presença
+          </h1>
+          <p
+            style={{
+              fontSize: "1.1em",
+              opacity: "0.95",
+              fontWeight: "400",
+              lineHeight: "1.5",
+            }}
+          >
+            Confirme sua presença em nossa celebração especial
+          </p>
         </div>
 
-        {isLoadingGuests ? (
-          <p style={{ textAlign: "center" }}>Carregando lista...</p>
-        ) : (
-          <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
-            {/* Convidados Confirmados */}
+        {/* Main Form Section */}
+        <div
+          style={{
+            backgroundColor: "white",
+            borderRadius: "0 0 20px 20px",
+            padding: "40px 30px",
+            boxShadow: "0 20px 40px rgba(0,0,0,0.1)",
+            position: "relative",
+          }}
+        >
+          {/* Status Messages */}
+          {submissionStatus === "loading" && (
+            <div
+              style={{
+                padding: "15px 20px",
+                backgroundColor: "#dbeafe",
+                color: "#1e40af",
+                borderRadius: "12px",
+                marginBottom: "25px",
+                display: "flex",
+                alignItems: "center",
+                gap: "10px",
+                fontSize: "0.95em",
+                fontWeight: "500",
+              }}
+            >
+              <div style={{ animation: "spin 1s linear infinite" }}>⏳</div>
+              Enviando confirmação...
+            </div>
+          )}
+
+          {errorMessage && (
+            <div
+              style={{
+                padding: "15px 20px",
+                backgroundColor: "#fee2e2",
+                color: "#dc2626",
+                borderRadius: "12px",
+                marginBottom: "25px",
+                fontSize: "0.95em",
+                fontWeight: "500",
+                border: "1px solid #fecaca",
+              }}
+            >
+              ❌ {errorMessage}
+            </div>
+          )}
+
+          {submissionStatus === "success" && !errorMessage && (
+            <div
+              style={{
+                padding: "15px 20px",
+                backgroundColor: "#dcfce7",
+                color: "#16a34a",
+                borderRadius: "12px",
+                marginBottom: "25px",
+                fontSize: "0.95em",
+                fontWeight: "500",
+                border: "1px solid #bbf7d0",
+              }}
+            >
+              ✅ Presença confirmada com sucesso!
+            </div>
+          )}
+
+          {/* Form */}
+          <form
+            onSubmit={handleSubmit}
+            style={{ display: "flex", flexDirection: "column", gap: "25px" }}
+          >
             <div>
-              <h3
+              <label
+                htmlFor="fullName"
                 style={{
-                  color: "var(--color-deep-rose)",
-                  marginBottom: "10px",
-                  fontSize: "1.2em",
+                  display: "block",
+                  marginBottom: "8px",
+                  fontWeight: "600",
+                  color: "#374151",
+                  fontSize: "0.95em",
                 }}
               >
-                ✅ Confirmados ({filteredConfirmedGuests.length}/
-                {confirmedGuests.length})
-              </h3>
-              <div
+                Nome Completo <span style={{ color: "#ef4444" }}>*</span>
+              </label>
+              <input
+                type="text"
+                id="fullName"
+                name="fullName"
+                value={formData.fullName}
+                onChange={handleChange}
+                required
                 style={{
-                  maxHeight: "200px",
-                  overflowY: "auto",
-                  border: `1.8px solid ${borderColorDefault}`,
-                  borderRadius: "8px",
-                  backgroundColor: "#f9f9f9",
-                  padding: "10px",
+                  width: "100%",
+                  padding: "15px 18px",
+                  borderRadius: "12px",
+                  border: "2px solid #e5e7eb",
+                  fontSize: "1em",
+                  transition: "all 0.3s ease",
+                  outline: "none",
+                  backgroundColor: "#fafafa",
+                  boxSizing: "border-box",
                 }}
-              >
-                {filteredConfirmedGuests.length === 0 ? (
-                  <p
-                    style={{
-                      textAlign: "center",
-                      color: borderColorDefault,
-                      margin: "20px 0",
-                    }}
-                  >
-                    {searchTerm
-                      ? "Nenhum convidado confirmado encontrado."
-                      : "Nenhum convidado confirmado ainda."}
-                  </p>
-                ) : (
-                  <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
-                    {filteredConfirmedGuests.map((guest, index) => (
-                      <li
-                        key={index}
-                        style={{
-                          padding: "12px 15px",
-                          borderBottom:
-                            index < filteredConfirmedGuests.length - 1
-                              ? `1px dashed ${borderColorDefault}`
-                              : "none",
-                          fontSize: "1.1em",
-                          color: "var(--color-dark-gray)",
-                          backgroundColor: "white",
-                          margin: "2px 0",
-                          borderRadius: "4px",
-                          transition: "background-color 0.2s ease",
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.backgroundColor = "#f0f8ff";
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.backgroundColor = "white";
-                        }}
-                      >
-                        {guest.full_name}
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
+                onFocus={(e) => {
+                  e.currentTarget.style.borderColor = "#ec4899";
+                  e.currentTarget.style.backgroundColor = "white";
+                  e.currentTarget.style.boxShadow = "0 0 0 3px rgba(236, 72, 153, 0.1)";
+                }}
+                onBlur={(e) => {
+                  e.currentTarget.style.borderColor = "#e5e7eb";
+                  e.currentTarget.style.backgroundColor = "#fafafa";
+                  e.currentTarget.style.boxShadow = "none";
+                }}
+              />
             </div>
 
-            {/* Convidados Não Confirmados */}
             <div>
-              <h3
+              <label
+                htmlFor="email"
                 style={{
-                  color: "var(--color-deep-rose)",
-                  marginBottom: "10px",
-                  fontSize: "1.2em",
+                  display: "block",
+                  marginBottom: "8px",
+                  fontWeight: "600",
+                  color: "#374151",
+                  fontSize: "0.95em",
                 }}
               >
-                ⏳ Aguardando Confirmação ({filteredUnconfirmedGuests.length}/
-                {unconfirmedGuests.length})
-              </h3>
+                E-mail <span style={{ color: "#ef4444" }}>*</span>
+              </label>
+              <input
+                type="email"
+                id="email"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+                required
+                style={{
+                  width: "100%",
+                  padding: "15px 18px",
+                  borderRadius: "12px",
+                  border: "2px solid #e5e7eb",
+                  fontSize: "1em",
+                  transition: "all 0.3s ease",
+                  outline: "none",
+                  backgroundColor: "#fafafa",
+                  boxSizing: "border-box",
+                }}
+                onFocus={(e) => {
+                  e.currentTarget.style.borderColor = "#ec4899";
+                  e.currentTarget.style.backgroundColor = "white";
+                  e.currentTarget.style.boxShadow = "0 0 0 3px rgba(236, 72, 153, 0.1)";
+                }}
+                onBlur={(e) => {
+                  e.currentTarget.style.borderColor = "#e5e7eb";
+                  e.currentTarget.style.backgroundColor = "#fafafa";
+                  e.currentTarget.style.boxShadow = "none";
+                }}
+              />
+            </div>
+
+            <div>
+              <label
+                htmlFor="message"
+                style={{
+                  display: "block",
+                  marginBottom: "8px",
+                  fontWeight: "600",
+                  color: "#374151",
+                  fontSize: "0.95em",
+                }}
+              >
+                Sua Mensagem (opcional)
+              </label>
+              <textarea
+                id="message"
+                name="message"
+                value={formData.message}
+                onChange={handleChange}
+                rows={4}
+                placeholder="Deixe uma mensagem carinhosa para os noivos..."
+                style={{
+                  width: "100%",
+                  padding: "15px 18px",
+                  borderRadius: "12px",
+                  border: "2px solid #e5e7eb",
+                  fontSize: "1em",
+                  resize: "vertical",
+                  transition: "all 0.3s ease",
+                  outline: "none",
+                  backgroundColor: "#fafafa",
+                  fontFamily: "inherit",
+                  boxSizing: "border-box",
+                }}
+                onFocus={(e) => {
+                  e.currentTarget.style.borderColor = "#ec4899";
+                  e.currentTarget.style.backgroundColor = "white";
+                  e.currentTarget.style.boxShadow = "0 0 0 3px rgba(236, 72, 153, 0.1)";
+                }}
+                onBlur={(e) => {
+                  e.currentTarget.style.borderColor = "#e5e7eb";
+                  e.currentTarget.style.backgroundColor = "#fafafa";
+                  e.currentTarget.style.boxShadow = "none";
+                }}
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={submissionStatus === "loading"}
+              style={{
+                padding: "18px 30px",
+                background: submissionStatus === "loading" 
+                  ? "linear-gradient(135deg, #9ca3af 0%, #6b7280 100%)"
+                  : "linear-gradient(135deg, #ec4899 0%, #f43f5e 100%)",
+                color: "white",
+                border: "none",
+                borderRadius: "12px",
+                cursor: submissionStatus === "loading" ? "not-allowed" : "pointer",
+                fontSize: "1.1em",
+                fontWeight: "600",
+                transition: "all 0.3s ease",
+                transform: "translateY(0)",
+                boxShadow: "0 4px 15px rgba(236, 72, 153, 0.3)",
+                position: "relative",
+                overflow: "hidden",
+              }}
+              onMouseEnter={(e) => {
+                if (submissionStatus !== "loading") {
+                  e.currentTarget.style.transform = "translateY(-2px)";
+                  e.currentTarget.style.boxShadow = "0 8px 25px rgba(236, 72, 153, 0.4)";
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (submissionStatus !== "loading") {
+                  e.currentTarget.style.transform = "translateY(0)";
+                  e.currentTarget.style.boxShadow = "0 4px 15px rgba(236, 72, 153, 0.3)";
+                }
+              }}
+            >
+              {submissionStatus === "loading" ? "Enviando..." : "Confirmar Presença 💕"}
+            </button>
+          </form>
+        </div>
+
+        {/* Guest List Section */}
+        <div
+          style={{
+            backgroundColor: "white",
+            borderRadius: "20px",
+            padding: "40px 30px",
+            marginTop: "30px",
+            boxShadow: "0 20px 40px rgba(0,0,0,0.1)",
+          }}
+        >
+          <h2
+            style={{
+              background: "linear-gradient(135deg, #ec4899 0%, #f43f5e 100%)",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+              fontSize: "2em",
+              textAlign: "center",
+              marginBottom: "30px",
+              fontWeight: "700",
+            }}
+          >
+            Lista de Convidados
+          </h2>
+
+          {/* Search Bar */}
+          <div style={{ marginBottom: "30px" }}>
+            <div style={{ position: "relative" }}>
+              <input
+                type="text"
+                placeholder="Pesquisar convidados..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                style={{
+                  width: "100%",
+                  padding: "15px 50px 15px 18px",
+                  borderRadius: "25px",
+                  border: "2px solid #e5e7eb",
+                  fontSize: "1em",
+                  outline: "none",
+                  transition: "all 0.3s ease",
+                  backgroundColor: "#fafafa",
+                  boxSizing: "border-box",
+                }}
+                onFocus={(e) => {
+                  e.currentTarget.style.borderColor = "#ec4899";
+                  e.currentTarget.style.backgroundColor = "white";
+                  e.currentTarget.style.boxShadow = "0 0 0 3px rgba(236, 72, 153, 0.1)";
+                }}
+                onBlur={(e) => {
+                  e.currentTarget.style.borderColor = "#e5e7eb";
+                  e.currentTarget.style.backgroundColor = "#fafafa";
+                  e.currentTarget.style.boxShadow = "none";
+                }}
+              />
               <div
                 style={{
-                  maxHeight: "200px",
-                  overflowY: "auto",
-                  border: `1.8px solid ${borderColorDefault}`,
-                  borderRadius: "8px",
-                  backgroundColor: "#f9f9f9",
-                  padding: "10px",
+                  position: "absolute",
+                  right: "20px",
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  fontSize: "1.2em",
+                  color: "#9ca3af",
                 }}
               >
-                {filteredUnconfirmedGuests.length === 0 ? (
-                  <p
-                    style={{
-                      textAlign: "center",
-                      color: borderColorDefault,
-                      margin: "20px 0",
-                    }}
-                  >
-                    {searchTerm
-                      ? "Nenhum convidado não confirmado encontrado."
-                      : "Todos os convidados já confirmaram!"}
-                  </p>
-                ) : (
-                  <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
-                    {filteredUnconfirmedGuests.map((guest, index) => (
-                      <li
-                        key={index}
-                        style={{
-                          padding: "12px 15px",
-                          borderBottom:
-                            index < filteredUnconfirmedGuests.length - 1
-                              ? `1px dashed ${borderColorDefault}`
-                              : "none",
-                          fontSize: "1.1em",
-                          color: "#999",
-                          fontStyle: "italic",
-                          backgroundColor: "white",
-                          margin: "2px 0",
-                          borderRadius: "4px",
-                          transition: "background-color 0.2s ease",
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.backgroundColor = "#fff8f0";
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.backgroundColor = "white";
-                        }}
-                      >
-                        {guest.full_name}
-                      </li>
-                    ))}
-                  </ul>
-                )}
+                🔍
               </div>
             </div>
           </div>
-        )}
+
+          {isLoadingGuests ? (
+            <div
+              style={{
+                textAlign: "center",
+                padding: "40px",
+                color: "#6b7280",
+                fontSize: "1.1em",
+              }}
+            >
+              <div style={{ animation: "spin 1s linear infinite", marginBottom: "10px" }}>
+                ⏳
+              </div>
+              Carregando lista...
+            </div>
+          ) : (
+            <div style={{ display: "grid", gap: "25px" }}>
+              {/* Confirmed Guests */}
+              <div>
+                <h3
+                  style={{
+                    color: "#16a34a",
+                    marginBottom: "15px",
+                    fontSize: "1.3em",
+                    fontWeight: "600",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px",
+                  }}
+                >
+                  <span style={{ fontSize: "1.2em" }}>✅</span>
+                  Confirmados ({filteredConfirmedGuests.length}/{confirmedGuests.length})
+                </h3>
+                <div
+                  style={{
+                    maxHeight: "300px",
+                    overflowY: "auto",
+                    borderRadius: "15px",
+                    border: "2px solid #dcfce7",
+                    backgroundColor: "#f0fdf4",
+                    padding: "5px",
+                  }}
+                >
+                  {filteredConfirmedGuests.length === 0 ? (
+                    <p
+                      style={{
+                        textAlign: "center",
+                        color: "#6b7280",
+                        margin: "30px 0",
+                        fontSize: "1em",
+                      }}
+                    >
+                      {searchTerm
+                        ? "Nenhum convidado confirmado encontrado."
+                        : "Nenhum convidado confirmado ainda."}
+                    </p>
+                  ) : (
+                    <div style={{ padding: "10px" }}>
+                      {filteredConfirmedGuests.map((guest, index) => (
+                        <div
+                          key={index}
+                          style={{
+                            padding: "15px 20px",
+                            backgroundColor: "white",
+                            borderRadius: "10px",
+                            marginBottom: "8px",
+                            fontSize: "1.05em",
+                            color: "#374151",
+                            fontWeight: "500",
+                            transition: "all 0.2s ease",
+                            border: "1px solid #e5e7eb",
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.transform = "translateX(5px)";
+                            e.currentTarget.style.boxShadow = "0 4px 15px rgba(22, 163, 74, 0.15)";
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.transform = "translateX(0)";
+                            e.currentTarget.style.boxShadow = "none";
+                          }}
+                        >
+                          {guest.full_name}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Unconfirmed Guests */}
+              <div>
+                <h3
+                  style={{
+                    color: "#f59e0b",
+                    marginBottom: "15px",
+                    fontSize: "1.3em",
+                    fontWeight: "600",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px",
+                  }}
+                >
+                  <span style={{ fontSize: "1.2em" }}>⏳</span>
+                  Aguardando Confirmação ({filteredUnconfirmedGuests.length}/{unconfirmedGuests.length})
+                </h3>
+                <div
+                  style={{
+                    maxHeight: "300px",
+                    overflowY: "auto",
+                    borderRadius: "15px",
+                    border: "2px solid #fed7aa",
+                    backgroundColor: "#fffbeb",
+                    padding: "5px",
+                  }}
+                >
+                  {filteredUnconfirmedGuests.length === 0 ? (
+                    <p
+                      style={{
+                        textAlign: "center",
+                        color: "#6b7280",
+                        margin: "30px 0",
+                        fontSize: "1em",
+                      }}
+                    >
+                      {searchTerm
+                        ? "Nenhum convidado não confirmado encontrado."
+                        : "Todos os convidados já confirmaram! 🎉"}
+                    </p>
+                  ) : (
+                    <div style={{ padding: "10px" }}>
+                      {filteredUnconfirmedGuests.map((guest, index) => (
+                        <div
+                          key={index}
+                          style={{
+                            padding: "15px 20px",
+                            backgroundColor: "white",
+                            borderRadius: "10px",
+                            marginBottom: "8px",
+                            fontSize: "1.05em",
+                            color: "#9ca3af",
+                            fontWeight: "500",
+                            fontStyle: "italic",
+                            transition: "all 0.2s ease",
+                            border: "1px solid #e5e7eb",
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.transform = "translateX(5px)";
+                            e.currentTarget.style.boxShadow = "0 4px 15px rgba(245, 158, 11, 0.15)";
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.transform = "translateX(0)";
+                            e.currentTarget.style.boxShadow = "none";
+                          }}
+                        >
+                          {guest.full_name}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
+
+
     </div>
   );
 }
