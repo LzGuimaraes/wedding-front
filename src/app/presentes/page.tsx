@@ -1,7 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { FaWhatsapp } from 'react-icons/fa';
+import { FaWhatsapp,FaRegCopy } from 'react-icons/fa';
+
+const pixKey = "b90ce1ce-d3e1-4697-b2a9-b78d0377c8b8";
+
 
 interface Gift {
   id: number;
@@ -348,28 +351,61 @@ export default function ListaPresentes() {
         Lista de Presentes
       </h1>
     
-  <p style={{ 
-    textAlign: "center", 
-    marginBottom: "30px", 
-    fontSize: '1.1em', 
-    lineHeight: '1.6' 
+  <div style={{
+  textAlign: "center",
+  marginBottom: "30px",
+  fontSize: "1.1em",
+  lineHeight: "1.6",
+  backgroundColor: "#fff0f5",
+  padding: "20px",
+  borderRadius: "12px",
+  boxShadow: "0 2px 10px rgba(0,0,0,0.05)"
+}}>
+  <p style={{ marginBottom: "10px" }}>
+    Realize o pagamento via PIX para a chave:
+  </p>
+  <div style={{
+    display: "inline-flex",
+    alignItems: "center",
+    backgroundColor: "#fff",
+    border: "1px solid #ffc0cb",
+    borderRadius: "8px",
+    padding: "10px 15px",
+    fontWeight: "bold",
+    fontSize: "1.1em",
+    color: "#d6336c"
   }}>
-    Reserve seu presente e realize o pagamento via PIX para a chave <strong>email@email.com</strong>
-  <br />
-    Para finalizar, envie o comprovante por WhatsApp clicando aqui: {' '}
-  <a 
-    href="https://wa.me/5565998153854" 
-    target="_blank" 
-    rel="noopener noreferrer"
-    title="Enviar comprovante pelo WhatsApp"
-  >
-    <FaWhatsapp style={{ 
-      color: '#25D366', 
-      fontSize: '28px', 
-      verticalAlign: 'middle' 
-    }} />
-  </a>
-</p>
+    {pixKey}
+    <FaRegCopy
+      onClick={() => {
+        navigator.clipboard.writeText(pixKey);
+        alert("Chave PIX copiada!");
+      }}
+      style={{
+        marginLeft: "10px",
+        cursor: "pointer",
+        color: "#d6336c"
+      }}
+      title="Copiar chave"
+    />
+  </div>
+  <p style={{ marginTop: "15px" }}>
+    Após o pagamento, envie o comprovante pelo WhatsApp:{' '}
+    <a
+      href="https://wa.me/5565998153854"
+      target="_blank"
+      rel="noopener noreferrer"
+      title="Enviar comprovante pelo WhatsApp"
+    >
+      <FaWhatsapp style={{
+        color: '#25D366',
+        fontSize: '28px',
+        verticalAlign: 'middle',
+        marginLeft: "5px"
+      }} />
+    </a>
+  </p>
+</div>
 
       {/* Barra de Pesquisa */}
       <div style={{ marginBottom: "30px" }}>
