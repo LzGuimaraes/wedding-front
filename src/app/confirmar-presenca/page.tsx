@@ -31,20 +31,66 @@ export default function ConfirmarPresencaPage() {
   const fetchAllGuests = useCallback(async () => {
     setIsLoadingGuests(true);
     try {
+      console.log("Buscando convidados confirmados...");
       const confirmedResponse = await fetch(
         `${API_BASE_URL}/api/guests/confirmed`
       );
+
       if (confirmedResponse.ok) {
-        const confirmedData: Guest[] = await confirmedResponse.json();
-        setConfirmedGuests(confirmedData);
+        const confirmedData = await confirmedResponse.json();
+        console.log("Dados confirmados recebidos:", confirmedData);
+
+        // Verificar se é um array, se não for, tentar extrair o array correto
+        if (Array.isArray(confirmedData)) {
+          setConfirmedGuests(confirmedData);
+        } else if (confirmedData && Array.isArray(confirmedData.guests)) {
+          setConfirmedGuests(confirmedData.guests);
+        } else if (confirmedData && Array.isArray(confirmedData.data)) {
+          setConfirmedGuests(confirmedData.data);
+        } else {
+          console.error(
+            "Formato inesperado dos dados confirmados:",
+            confirmedData
+          );
+          setConfirmedGuests([]);
+        }
+      } else {
+        console.error(
+          "Erro ao buscar convidados confirmados:",
+          confirmedResponse.status
+        );
+        setConfirmedGuests([]);
       }
 
+      console.log("Buscando convidados não confirmados...");
       const unconfirmedResponse = await fetch(
         `${API_BASE_URL}/api/guests/unconfirmed`
       );
+
       if (unconfirmedResponse.ok) {
-        const unconfirmedData: Guest[] = await unconfirmedResponse.json();
-        setUnconfirmedGuests(unconfirmedData);
+        const unconfirmedData = await unconfirmedResponse.json();
+        console.log("Dados não confirmados recebidos:", unconfirmedData);
+
+        // Verificar se é um array, se não for, tentar extrair o array correto
+        if (Array.isArray(unconfirmedData)) {
+          setUnconfirmedGuests(unconfirmedData);
+        } else if (unconfirmedData && Array.isArray(unconfirmedData.guests)) {
+          setUnconfirmedGuests(unconfirmedData.guests);
+        } else if (unconfirmedData && Array.isArray(unconfirmedData.data)) {
+          setUnconfirmedGuests(unconfirmedData.data);
+        } else {
+          console.error(
+            "Formato inesperado dos dados não confirmados:",
+            unconfirmedData
+          );
+          setUnconfirmedGuests([]);
+        }
+      } else {
+        console.error(
+          "Erro ao buscar convidados não confirmados:",
+          unconfirmedResponse.status
+        );
+        setUnconfirmedGuests([]);
       }
     } catch (error: unknown) {
       console.error("Erro ao buscar convidados:", error);
@@ -75,12 +121,27 @@ export default function ConfirmarPresencaPage() {
   };
 
   const filterGuestsBySearch = (guests: Guest[]) => {
+    // Garantir que guests é um array
+    if (!Array.isArray(guests)) {
+      console.error("filterGuestsBySearch: guests não é um array:", guests);
+      return [];
+    }
+
     if (!searchTerm.trim()) return guests;
-    return guests.filter((guest) =>
-      guest.full_name.toLowerCase().includes(searchTerm.toLowerCase().trim())
-    );
+
+    return guests.filter((guest) => {
+      // Verificar se guest e guest.full_name existem
+      if (!guest || typeof guest.full_name !== "string") {
+        console.error("Guest inválido:", guest);
+        return false;
+      }
+      return guest.full_name
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase().trim());
+    });
   };
 
+  // Usar as funções de filtro de forma segura
   const filteredConfirmedGuests = filterGuestsBySearch(confirmedGuests);
   const filteredUnconfirmedGuests = filterGuestsBySearch(unconfirmedGuests);
 
@@ -151,8 +212,10 @@ export default function ConfirmarPresencaPage() {
     <div
       style={{
         minHeight: "100vh",
-        background: "linear-gradient(135deg, #fdf2f8 0%, #f8fafc 50%, #f1f5f9 100%)",
-        fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+        background:
+          "linear-gradient(135deg, #fdf2f8 0%, #f8fafc 50%, #f1f5f9 100%)",
+        fontFamily:
+          "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
         padding: "20px",
       }}
     >
@@ -326,7 +389,8 @@ export default function ConfirmarPresencaPage() {
                 onFocus={(e) => {
                   e.currentTarget.style.borderColor = "#ec4899";
                   e.currentTarget.style.backgroundColor = "white";
-                  e.currentTarget.style.boxShadow = "0 0 0 3px rgba(236, 72, 153, 0.1)";
+                  e.currentTarget.style.boxShadow =
+                    "0 0 0 3px rgba(236, 72, 153, 0.1)";
                 }}
                 onBlur={(e) => {
                   e.currentTarget.style.borderColor = "#e5e7eb";
@@ -370,7 +434,8 @@ export default function ConfirmarPresencaPage() {
                 onFocus={(e) => {
                   e.currentTarget.style.borderColor = "#ec4899";
                   e.currentTarget.style.backgroundColor = "white";
-                  e.currentTarget.style.boxShadow = "0 0 0 3px rgba(236, 72, 153, 0.1)";
+                  e.currentTarget.style.boxShadow =
+                    "0 0 0 3px rgba(236, 72, 153, 0.1)";
                 }}
                 onBlur={(e) => {
                   e.currentTarget.style.borderColor = "#e5e7eb";
@@ -416,7 +481,8 @@ export default function ConfirmarPresencaPage() {
                 onFocus={(e) => {
                   e.currentTarget.style.borderColor = "#ec4899";
                   e.currentTarget.style.backgroundColor = "white";
-                  e.currentTarget.style.boxShadow = "0 0 0 3px rgba(236, 72, 153, 0.1)";
+                  e.currentTarget.style.boxShadow =
+                    "0 0 0 3px rgba(236, 72, 153, 0.1)";
                 }}
                 onBlur={(e) => {
                   e.currentTarget.style.borderColor = "#e5e7eb";
@@ -431,13 +497,15 @@ export default function ConfirmarPresencaPage() {
               disabled={submissionStatus === "loading"}
               style={{
                 padding: "18px 30px",
-                background: submissionStatus === "loading" 
-                  ? "linear-gradient(135deg, #9ca3af 0%, #6b7280 100%)"
-                  : "linear-gradient(135deg, #ec4899 0%, #f43f5e 100%)",
+                background:
+                  submissionStatus === "loading"
+                    ? "linear-gradient(135deg, #9ca3af 0%, #6b7280 100%)"
+                    : "linear-gradient(135deg, #ec4899 0%, #f43f5e 100%)",
                 color: "white",
                 border: "none",
                 borderRadius: "12px",
-                cursor: submissionStatus === "loading" ? "not-allowed" : "pointer",
+                cursor:
+                  submissionStatus === "loading" ? "not-allowed" : "pointer",
                 fontSize: "1.1em",
                 fontWeight: "600",
                 transition: "all 0.3s ease",
@@ -449,17 +517,21 @@ export default function ConfirmarPresencaPage() {
               onMouseEnter={(e) => {
                 if (submissionStatus !== "loading") {
                   e.currentTarget.style.transform = "translateY(-2px)";
-                  e.currentTarget.style.boxShadow = "0 8px 25px rgba(236, 72, 153, 0.4)";
+                  e.currentTarget.style.boxShadow =
+                    "0 8px 25px rgba(236, 72, 153, 0.4)";
                 }
               }}
               onMouseLeave={(e) => {
                 if (submissionStatus !== "loading") {
                   e.currentTarget.style.transform = "translateY(0)";
-                  e.currentTarget.style.boxShadow = "0 4px 15px rgba(236, 72, 153, 0.3)";
+                  e.currentTarget.style.boxShadow =
+                    "0 4px 15px rgba(236, 72, 153, 0.3)";
                 }
               }}
             >
-              {submissionStatus === "loading" ? "Enviando..." : "Confirmar Presença 💕"}
+              {submissionStatus === "loading"
+                ? "Enviando..."
+                : "Confirmar Presença 💕"}
             </button>
           </form>
         </div>
@@ -510,7 +582,8 @@ export default function ConfirmarPresencaPage() {
                 onFocus={(e) => {
                   e.currentTarget.style.borderColor = "#ec4899";
                   e.currentTarget.style.backgroundColor = "white";
-                  e.currentTarget.style.boxShadow = "0 0 0 3px rgba(236, 72, 153, 0.1)";
+                  e.currentTarget.style.boxShadow =
+                    "0 0 0 3px rgba(236, 72, 153, 0.1)";
                 }}
                 onBlur={(e) => {
                   e.currentTarget.style.borderColor = "#e5e7eb";
@@ -542,7 +615,12 @@ export default function ConfirmarPresencaPage() {
                 fontSize: "1.1em",
               }}
             >
-              <div style={{ animation: "spin 1s linear infinite", marginBottom: "10px" }}>
+              <div
+                style={{
+                  animation: "spin 1s linear infinite",
+                  marginBottom: "10px",
+                }}
+              >
                 ⏳
               </div>
               Carregando lista...
@@ -563,7 +641,8 @@ export default function ConfirmarPresencaPage() {
                   }}
                 >
                   <span style={{ fontSize: "1.2em" }}>✅</span>
-                  Confirmados ({filteredConfirmedGuests.length}/{confirmedGuests.length})
+                  Confirmados ({filteredConfirmedGuests.length}/
+                  {confirmedGuests.length})
                 </h3>
                 <div
                   style={{
@@ -606,7 +685,8 @@ export default function ConfirmarPresencaPage() {
                           }}
                           onMouseEnter={(e) => {
                             e.currentTarget.style.transform = "translateX(5px)";
-                            e.currentTarget.style.boxShadow = "0 4px 15px rgba(22, 163, 74, 0.15)";
+                            e.currentTarget.style.boxShadow =
+                              "0 4px 15px rgba(22, 163, 74, 0.15)";
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.style.transform = "translateX(0)";
@@ -635,7 +715,8 @@ export default function ConfirmarPresencaPage() {
                   }}
                 >
                   <span style={{ fontSize: "1.2em" }}>⏳</span>
-                  Aguardando Confirmação ({filteredUnconfirmedGuests.length}/{unconfirmedGuests.length})
+                  Aguardando Confirmação ({filteredUnconfirmedGuests.length}/
+                  {unconfirmedGuests.length})
                 </h3>
                 <div
                   style={{
@@ -679,7 +760,8 @@ export default function ConfirmarPresencaPage() {
                           }}
                           onMouseEnter={(e) => {
                             e.currentTarget.style.transform = "translateX(5px)";
-                            e.currentTarget.style.boxShadow = "0 4px 15px rgba(245, 158, 11, 0.15)";
+                            e.currentTarget.style.boxShadow =
+                              "0 4px 15px rgba(245, 158, 11, 0.15)";
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.style.transform = "translateX(0)";
