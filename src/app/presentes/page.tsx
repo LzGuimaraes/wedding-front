@@ -1,10 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { FaWhatsapp,FaRegCopy } from 'react-icons/fa';
+import { FaWhatsapp, FaRegCopy } from "react-icons/fa";
 
 const pixKey = "b90ce1ce-d3e1-4697-b2a9-b78d0377c8b8";
-
 
 interface Gift {
   id: number;
@@ -47,8 +46,13 @@ export default function ListaPresentes() {
       const response = await fetch(`${API_BASE_URL}/api/gifts`);
       if (!response.ok)
         throw new Error(`HTTP error! status: ${response.status}`);
-      const data: Gift[] = await response.json();
-      setGifts(data);
+      const data = await response.json();
+
+      // Garantir que é um array
+      const giftsArray = Array.isArray(data)
+        ? data
+        : data.gifts || data.data || [];
+      setGifts(giftsArray);
       setErrorMessage(null);
     } catch (error) {
       setErrorMessage("Erro ao carregar presentes.");
@@ -65,19 +69,43 @@ export default function ListaPresentes() {
       const response = await fetch(`${API_BASE_URL}/api/guests/confirmed`);
       if (!response.ok)
         throw new Error(`HTTP error! status: ${response.status}`);
-      const data: GuestApiResponse[] = await response.json();
-      const validGuests = data
-        .map((guest) => ({
+      const data = await response.json();
+
+      console.log("Dados recebidos da API:", data);
+
+      // Garantir que é um array - tenta diferentes propriedades
+      let rawGuests = [];
+      if (Array.isArray(data)) {
+        rawGuests = data;
+      } else if (data && typeof data === "object") {
+        rawGuests = data.guests || data.data || data.results || [];
+      }
+
+      console.log("Array extraído:", rawGuests);
+
+      // Verificar se é realmente um array
+      if (!Array.isArray(rawGuests)) {
+        console.error("Dados não são um array:", rawGuests);
+        setGuests([]);
+        setErrorMessage("Formato de dados inválido recebido da API.");
+        return;
+      }
+
+      const validGuests = rawGuests
+        .filter((guest: any) => guest && guest.id && guest.full_name)
+        .map((guest: GuestApiResponse) => ({
           id: guest.id,
           name: guest.full_name,
           email: guest.email,
         }))
-        .filter((guest) => guest.id && guest.name.trim().length > 0);
+        .filter((guest: Guest) => guest.id && guest.name.trim().length > 0);
+
+      console.log("Convidados válidos:", validGuests);
       setGuests(validGuests);
       setErrorMessage(null);
     } catch (error) {
       setErrorMessage("Erro ao carregar convidados.");
-      console.error(error);
+      console.error("Erro detalhado:", error);
       setGuests([]);
     } finally {
       setIsLoadingGuests(false);
@@ -271,7 +299,7 @@ export default function ListaPresentes() {
                         setShowReserveModal(true);
                         setErrorMessage(null);
                         setReserveStatus(null);
-                        fetchGuests(); // Atualiza convidados ao abrir modal
+                        fetchGuests();
                       }}
                       style={btnStylePinkSoft}
                       onMouseEnter={(e) => {
@@ -350,62 +378,68 @@ export default function ListaPresentes() {
       >
         Lista de Presentes
       </h1>
-    
-  <div style={{
-  textAlign: "center",
-  marginBottom: "30px",
-  fontSize: "1.1em",
-  lineHeight: "1.6",
-  backgroundColor: "#fff0f5",
-  padding: "20px",
-  borderRadius: "12px",
-  boxShadow: "0 2px 10px rgba(0,0,0,0.05)"
-}}>
-  <p style={{ marginBottom: "10px" }}>
-    Realize o pagamento via PIX para a chave:
-  </p>
-  <div style={{
-    display: "inline-flex",
-    alignItems: "center",
-    backgroundColor: "#fff",
-    border: "1px solid #ffc0cb",
-    borderRadius: "8px",
-    padding: "10px 15px",
-    fontWeight: "bold",
-    fontSize: "1.1em",
-    color: "#d6336c"
-  }}>
-    {pixKey}
-    <FaRegCopy
-      onClick={() => {
-        navigator.clipboard.writeText(pixKey);
-        alert("Chave PIX copiada!");
-      }}
-      style={{
-        marginLeft: "10px",
-        cursor: "pointer",
-        color: "#d6336c"
-      }}
-      title="Copiar chave"
-    />
-  </div>
-  <p style={{ marginTop: "15px" }}>
-    Após o pagamento, envie o comprovante pelo WhatsApp:{' '}
-    <a
-      href="https://wa.me/5565998153854"
-      target="_blank"
-      rel="noopener noreferrer"
-      title="Enviar comprovante pelo WhatsApp"
-    >
-      <FaWhatsapp style={{
-        color: '#25D366',
-        fontSize: '28px',
-        verticalAlign: 'middle',
-        marginLeft: "5px"
-      }} />
-    </a>
-  </p>
-</div>
+
+      <div
+        style={{
+          textAlign: "center",
+          marginBottom: "30px",
+          fontSize: "1.1em",
+          lineHeight: "1.6",
+          backgroundColor: "#fff0f5",
+          padding: "20px",
+          borderRadius: "12px",
+          boxShadow: "0 2px 10px rgba(0,0,0,0.05)",
+        }}
+      >
+        <p style={{ marginBottom: "10px" }}>
+          Realize o pagamento via PIX para a chave:
+        </p>
+        <div
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            backgroundColor: "#fff",
+            border: "1px solid #ffc0cb",
+            borderRadius: "8px",
+            padding: "10px 15px",
+            fontWeight: "bold",
+            fontSize: "1.1em",
+            color: "#d6336c",
+          }}
+        >
+          {pixKey}
+          <FaRegCopy
+            onClick={() => {
+              navigator.clipboard.writeText(pixKey);
+              alert("Chave PIX copiada!");
+            }}
+            style={{
+              marginLeft: "10px",
+              cursor: "pointer",
+              color: "#d6336c",
+            }}
+            title="Copiar chave"
+          />
+        </div>
+        <p style={{ marginTop: "15px" }}>
+          Após o pagamento, envie o comprovante pelo WhatsApp:{" "}
+          <a
+            href="https://wa.me/5565998153854"
+            target="_blank"
+            rel="noopener noreferrer"
+            title="Enviar comprovante pelo WhatsApp"
+          >
+            <FaWhatsapp
+              style={{
+                color: "#25D366",
+                fontSize: "28px",
+                verticalAlign: "middle",
+                marginLeft: "5px",
+              }}
+            />
+          </a>
+        </p>
+      </div>
 
       {/* Barra de Pesquisa */}
       <div style={{ marginBottom: "30px" }}>
