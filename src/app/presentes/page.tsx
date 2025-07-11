@@ -19,6 +19,13 @@ interface Guest {
   email?: string;
 }
 
+interface ApiResponse {
+  gifts?: Gift[];
+  data?: Gift[];
+  guests?: GuestApiResponse[];
+  results?: GuestApiResponse[];
+}
+
 interface GuestApiResponse {
   id: number;
   full_name: string;
@@ -46,12 +53,17 @@ export default function ListaPresentes() {
       const response = await fetch(`${API_BASE_URL}/api/gifts`);
       if (!response.ok)
         throw new Error(`HTTP error! status: ${response.status}`);
-      const data = await response.json();
+      const data: unknown = await response.json();
 
       // Garantir que é um array
-      const giftsArray = Array.isArray(data)
-        ? data
-        : data.gifts || data.data || [];
+      let giftsArray: Gift[] = [];
+      if (Array.isArray(data)) {
+        giftsArray = data as Gift[];
+      } else if (data && typeof data === "object") {
+        const dataObj = data as ApiResponse;
+        giftsArray = dataObj.gifts || dataObj.data || [];
+      }
+
       setGifts(giftsArray);
       setErrorMessage(null);
     } catch (error) {
@@ -69,16 +81,18 @@ export default function ListaPresentes() {
       const response = await fetch(`${API_BASE_URL}/api/guests/confirmed`);
       if (!response.ok)
         throw new Error(`HTTP error! status: ${response.status}`);
-      const data = await response.json();
+      const data: unknown = await response.json();
 
       console.log("Dados recebidos da API:", data);
 
       // Garantir que é um array - tenta diferentes propriedades
-      let rawGuests = [];
+      let rawGuests: unknown[] = [];
       if (Array.isArray(data)) {
         rawGuests = data;
       } else if (data && typeof data === "object") {
-        rawGuests = data.guests || data.data || data.results || [];
+        const dataObj = data as Record<string, unknown>;
+        const possibleArray = dataObj.guests || dataObj.data || dataObj.results;
+        rawGuests = Array.isArray(possibleArray) ? possibleArray : [];
       }
 
       console.log("Array extraído:", rawGuests);
@@ -92,7 +106,16 @@ export default function ListaPresentes() {
       }
 
       const validGuests = rawGuests
-        .filter((guest: any) => guest && guest.id && guest.full_name)
+        .filter((guest: unknown): guest is GuestApiResponse => {
+          return (
+            guest !== null &&
+            typeof guest === "object" &&
+            "id" in guest &&
+            "full_name" in guest &&
+            typeof (guest as GuestApiResponse).id === "number" &&
+            typeof (guest as GuestApiResponse).full_name === "string"
+          );
+        })
         .map((guest: GuestApiResponse) => ({
           id: guest.id,
           name: guest.full_name,
@@ -199,6 +222,16 @@ export default function ListaPresentes() {
       const err = error as Error;
       alert(`Falha na confirmação: ${err.message}`);
       console.error(err);
+    }
+  };
+
+  const handleCopyPix = async () => {
+    try {
+      await navigator.clipboard.writeText(pixKey);
+      alert("Chave PIX copiada!");
+    } catch (err) {
+      console.error("Erro ao copiar:", err);
+      alert("Erro ao copiar a chave PIX. Tente novamente.");
     }
   };
 
@@ -409,10 +442,7 @@ export default function ListaPresentes() {
         >
           {pixKey}
           <FaRegCopy
-            onClick={() => {
-              navigator.clipboard.writeText(pixKey);
-              alert("Chave PIX copiada!");
-            }}
+            onClick={handleCopyPix}
             style={{
               marginLeft: "10px",
               cursor: "pointer",
